@@ -236,13 +236,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     mobileNumberLabel: 'Mobile Number',
                     countryCode: _countryCode,
                     mobileController: _mobileController,
-                    countryCodeOptions: const [
-                      GlassyDropdownItem(value: '+92', label: '+92 (Pakistan)'),
-                      GlassyDropdownItem(value: '+1', label: '+1 (USA/Canada)'),
-                      GlassyDropdownItem(value: '+44', label: '+44 (UK)'),
-                      GlassyDropdownItem(value: '+91', label: '+91 (India)'),
-                      GlassyDropdownItem(value: '+971', label: '+971 (UAE)'),
-                    ],
+                    countryCodeOptions: AppConstants.countryCodes
+                        .map(
+                          (country) => GlassyDropdownItem<String>(
+                            value: country['code']!,
+                            label: '${country['code']} (${country['name']})',
+                          ),
+                        )
+                        .toList(),
                     onCountryCodeChanged: (value) {
                       setState(() {
                         _countryCode = value;

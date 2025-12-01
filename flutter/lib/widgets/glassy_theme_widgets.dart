@@ -131,10 +131,17 @@ class GlassyTheme {
   static InputDecoration glassyInputDecoration({
     String? hintText,
     Widget? suffixIcon,
+    Widget? prefixIcon,
   }) {
     return InputDecoration(
       hintText: hintText,
       hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+      prefixIcon: prefixIcon != null
+          ? IconTheme(
+              data: IconThemeData(color: Colors.white.withValues(alpha: 0.8)),
+              child: prefixIcon,
+            )
+          : null,
       suffixIcon: suffixIcon != null
           ? IconTheme(
               data: IconThemeData(color: Colors.white.withValues(alpha: 0.8)),
@@ -626,6 +633,287 @@ class GlassyTheme {
 
     overlay.insert(overlayEntry);
   }
+
+  /// Shows a searchable glassy dropdown menu positioned relative to a widget
+  /// 
+  /// [context] - Build context
+  /// [key] - GlobalKey of the widget to position the dropdown relative to
+  /// [items] - List of dropdown items, each with a label and value
+  /// [selectedValue] - Currently selected value (can be null)
+  /// [onSelected] - Callback when an item is selected
+  /// [showSelectOption] - Whether to show a "-- Select --" option (default: true)
+  /// [selectOptionLabel] - Label for the select option (default: "-- Select --")
+  /// [searchHint] - Hint text for the search field
+  static void showSearchableGlassyDropdown<T>({
+    required BuildContext context,
+    required GlobalKey key,
+    required List<GlassyDropdownItem<T>> items,
+    T? selectedValue,
+    required ValueChanged<T?> onSelected,
+    bool showSelectOption = true,
+    String selectOptionLabel = '-- Select --',
+    String searchHint = 'Search...',
+    double? minWidth,
+  }) {
+    final RenderBox? renderBox =
+        key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final size = renderBox.size;
+    final offset = renderBox.localToGlobal(Offset.zero);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Calculate dropdown width: use minWidth if provided, otherwise use field width
+    final dropdownWidth = minWidth != null 
+        ? size.width.clamp(minWidth, screenWidth - 16)
+        : size.width;
+    
+    final left = offset.dx.clamp(8.0, screenWidth - 8.0 - dropdownWidth);
+    final top = (offset.dy + size.height + 8).clamp(
+      8.0,
+      screenHeight - 8.0 - 400,
+    );
+
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+    final searchController = TextEditingController();
+    final filteredItems = ValueNotifier<List<GlassyDropdownItem<T>>>(items);
+
+    // Filter items based on search query
+    void filterItems(String query) {
+      if (query.isEmpty) {
+        filteredItems.value = items;
+      } else {
+        filteredItems.value = items.where((item) {
+          return item.label.toLowerCase().contains(query.toLowerCase()) ||
+              item.value.toString().toLowerCase().contains(query.toLowerCase());
+        }).toList();
+      }
+    }
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          // Transparent barrier to dismiss on tap outside
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                searchController.dispose();
+                overlayEntry.remove();
+              },
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          // Glassy searchable dropdown menu
+          Positioned(
+            left: left,
+            top: top,
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 200),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.scale(
+                    scale: 0.95 + (value * 0.05),
+                    child: child,
+                  ),
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(containerBorderRadius),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: containerBlurSigma,
+                    sigmaY: containerBlurSigma,
+                  ),
+                  child: Container(
+                    width: dropdownWidth,
+                    constraints: const BoxConstraints(maxHeight: 400),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(containerBorderRadius),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: borderWidth,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Search field
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: StatefulBuilder(
+                              builder: (context, setState) {
+                                return GlassyTheme.glassyTextField(
+                                  TextField(
+                                    controller: searchController,
+                                    style: const TextStyle(color: Colors.white),
+                                    autofocus: true,
+                                    decoration: GlassyTheme.glassyInputDecoration(
+                                      hintText: searchHint,
+                                      prefixIcon: const Icon(
+                                        Icons.search,
+                                        color: Colors.white,
+                                      ),
+                                      suffixIcon: searchController.text.isNotEmpty
+                                          ? IconButton(
+                                              icon: const Icon(
+                                                Icons.clear,
+                                                color: Colors.white,
+                                              ),
+                                              onPressed: () {
+                                                searchController.clear();
+                                                filterItems('');
+                                                setState(() {});
+                                              },
+                                            )
+                                          : null,
+                                    ),
+                                    onChanged: (value) {
+                                      filterItems(value);
+                                      setState(() {});
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          // Divider
+                          Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                          // Filtered items list
+                          Flexible(
+                            child: ValueListenableBuilder<List<GlassyDropdownItem<T>>>(
+                              valueListenable: filteredItems,
+                              builder: (context, filtered, _) {
+                                if (filtered.isEmpty) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Text(
+                                      'No results found',
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(alpha: 0.7),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                return ListView(
+                                  shrinkWrap: true,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  children: [
+                                    if (showSelectOption)
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            searchController.dispose();
+                                            overlayEntry.remove();
+                                            onSelected(null);
+                                          },
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 14,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: selectedValue == null
+                                                  ? Colors.white.withValues(alpha: 0.15)
+                                                  : Colors.transparent,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              selectOptionLabel,
+                                              style: TextStyle(
+                                                color: selectedValue == null
+                                                    ? Colors.white
+                                                    : Colors.white.withValues(alpha: 0.9),
+                                                fontWeight: selectedValue == null
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                fontSize: 16,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ...filtered.map(
+                                      (item) => Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            searchController.dispose();
+                                            overlayEntry.remove();
+                                            onSelected(item.value);
+                                          },
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 14,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: selectedValue == item.value
+                                                  ? Colors.white.withValues(alpha: 0.15)
+                                                  : Colors.transparent,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Text(
+                                              item.label,
+                                              style: TextStyle(
+                                                color: selectedValue == item.value
+                                                    ? Colors.white
+                                                    : Colors.white.withValues(alpha: 0.9),
+                                                fontWeight: selectedValue == item.value
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                fontSize: 16,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+  }
 }
 
 /// Data class for dropdown items
@@ -690,7 +978,7 @@ class GlassyDropdownField<T> extends StatelessWidget {
               suffixIcon: const Icon(Icons.arrow_drop_down),
             ),
             onTap: () {
-              GlassyTheme.showGlassyDropdown<T>(
+              GlassyTheme.showSearchableGlassyDropdown<T>(
                 context: context,
                 key: dropdownKey,
                 items: items,
@@ -698,6 +986,7 @@ class GlassyDropdownField<T> extends StatelessWidget {
                 onSelected: onChanged,
                 showSelectOption: showSelectOption,
                 selectOptionLabel: selectOptionLabel,
+                searchHint: 'Search ${label.toLowerCase()}...',
               );
             },
           ),
@@ -825,6 +1114,7 @@ class GlassyPasswordField extends StatefulWidget {
     this.hintText,
     this.validator,
     this.minLength = 6,
+    this.onFieldSubmitted,
   });
 
   final String label;
@@ -833,6 +1123,7 @@ class GlassyPasswordField extends StatefulWidget {
   final String? hintText;
   final String? Function(String?)? validator;
   final int minLength;
+  final void Function(String)? onFieldSubmitted;
 
   @override
   State<GlassyPasswordField> createState() => _GlassyPasswordFieldState();
@@ -879,6 +1170,7 @@ class _GlassyPasswordFieldState extends State<GlassyPasswordField> {
                         return null;
                       }
                     : null),
+            onFieldSubmitted: widget.onFieldSubmitted,
           ),
         ),
       ],
@@ -917,11 +1209,18 @@ class GlassyPhoneField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dropdownKey = GlobalKey();
+    final selectedItem = countryCodeOptions.firstWhere(
+      (item) => item.value == countryCode,
+      orElse: () => countryCodeOptions.first,
+    );
+    final displayText = selectedItem.value;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          flex: 3,
+          flex: 4,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -930,35 +1229,15 @@ class GlassyPhoneField extends StatelessWidget {
                 required: countryCodeRequired,
               ),
               GlassyTheme.glassyTextField(
-                DropdownButtonFormField<String>(
-                  value: countryCode,
+                TextFormField(
+                  key: dropdownKey,
+                  readOnly: true,
                   style: const TextStyle(color: Colors.white),
-                  dropdownColor: Colors.white.withValues(alpha: 0.85),
-                  menuMaxHeight: 300,
-                  borderRadius: BorderRadius.circular(GlassyTheme.borderRadius),
-                  decoration: GlassyTheme.glassyInputDecoration()
-                      .copyWith(isDense: true),
-                  isExpanded: true,
-                  selectedItemBuilder: (BuildContext context) {
-                    return countryCodeOptions.map((item) {
-                      return Text(
-                        item.value,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white),
-                      );
-                    }).toList();
-                  },
-                  items: countryCodeOptions.map((item) {
-                    return DropdownMenuItem(
-                      value: item.value,
-                      child: Text(item.label),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      onCountryCodeChanged(value);
-                    }
-                  },
+                  controller: TextEditingController(text: displayText),
+                  decoration: GlassyTheme.glassyInputDecoration(
+                    hintText: 'Code',
+                    suffixIcon: const Icon(Icons.arrow_drop_down),
+                  ),
                   validator: countryCodeValidator ??
                       (countryCodeRequired
                           ? (value) {
@@ -968,6 +1247,22 @@ class GlassyPhoneField extends StatelessWidget {
                               return null;
                             }
                           : null),
+                  onTap: () {
+                    GlassyTheme.showSearchableGlassyDropdown<String>(
+                      context: context,
+                      key: dropdownKey,
+                      items: countryCodeOptions,
+                      selectedValue: countryCode,
+                      onSelected: (value) {
+                        if (value != null) {
+                          onCountryCodeChanged(value);
+                        }
+                      },
+                      showSelectOption: false,
+                      searchHint: 'Search country code...',
+                      minWidth: 320, // Wider width for country names
+                    );
+                  },
                 ),
               ),
             ],
@@ -975,7 +1270,7 @@ class GlassyPhoneField extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          flex: 7,
+          flex: 6,
           child: GlassyTextField(
             label: mobileNumberLabel,
             controller: mobileController,

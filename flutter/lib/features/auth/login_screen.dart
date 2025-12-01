@@ -1,8 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import '../../config/app_constants.dart';
 import '../../utils/general_functions.dart';
 import '../settings/theme_picker_screen.dart';
+import '../../widgets/glassy_theme_widgets.dart';
 import 'register_screen.dart';
 import 'auth_service.dart';
 
@@ -13,11 +13,10 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign In - Your Account'),
+      extendBodyBehindAppBar: true,
+      appBar: GlassyTheme.glassyAppBar(
+        titleText: 'Sign In - Your Account',
         actions: [
           IconButton(
             tooltip: 'Choose color scheme',
@@ -32,70 +31,15 @@ class LoginScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.20),
-              colorScheme.surface.withValues(alpha: 0.95),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      body: Stack(
+        children: [
+          // Futuristic city night background with blur
+          const GlassyFuturisticBackground(),
+          // Form content on top
+          GlassyFormContainer(
+            child: _LoginForm(),
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 600),
-                curve: Curves.easeOutCubic,
-                tween: Tween(begin: 0, end: 1),
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.translate(
-                      offset: Offset(0, (1 - value) * 24),
-                      child: child,
-                    ),
-                  );
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        color: colorScheme.surface.withValues(alpha: 0.78),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.10),
-                            blurRadius: 24,
-                            offset: const Offset(0, 16),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 32,
-                        ),
-                        child: _LoginForm(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -114,7 +58,6 @@ class _LoginFormState extends State<_LoginForm> {
 
   String _countryCode = '+92';
   bool _isLoading = false;
-  bool _obscurePassword = true;
   String? _errorMessage;
 
   @override
@@ -198,124 +141,72 @@ class _LoginFormState extends State<_LoginForm> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
+          const SizedBox(height: 20),
+
+          // Title and description
           Text(
             'Sign In - Your Account',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             'Login with the same mobile number and password you use on the web app.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
+                  color: Colors.white.withValues(alpha: 0.9),
+                  shadows: [
+                    Shadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
           ),
           const SizedBox(height: 24),
 
           // Country Code and Mobile Number
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _countryCode,
-                  decoration: const InputDecoration(
-                    labelText: 'Country Code *',
-                    isDense: true,
+          GlassyPhoneField(
+            countryCodeLabel: 'Code',
+            mobileNumberLabel: 'Mobile Number',
+            countryCode: _countryCode,
+            mobileController: _mobileController,
+            countryCodeOptions: AppConstants.countryCodes
+                .map(
+                  (country) => GlassyDropdownItem<String>(
+                    value: country['code']!,
+                    label: '${country['code']} (${country['name']})',
                   ),
-                  isExpanded: true,
-                  selectedItemBuilder: (BuildContext context) {
-                    return const [
-                      Text('+92', overflow: TextOverflow.ellipsis),
-                      Text('+1', overflow: TextOverflow.ellipsis),
-                      Text('+44', overflow: TextOverflow.ellipsis),
-                      Text('+91', overflow: TextOverflow.ellipsis),
-                      Text('+971', overflow: TextOverflow.ellipsis),
-                    ];
-                  },
-                  items: const [
-                    DropdownMenuItem(
-                      value: '+92',
-                      child: Text('+92 (Pakistan)'),
-                    ),
-                    DropdownMenuItem(
-                      value: '+1',
-                      child: Text('+1 (USA/Canada)'),
-                    ),
-                    DropdownMenuItem(value: '+44', child: Text('+44 (UK)')),
-                    DropdownMenuItem(value: '+91', child: Text('+91 (India)')),
-                    DropdownMenuItem(value: '+971', child: Text('+971 (UAE)')),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() {
-                      _countryCode = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Required';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 7,
-                child: TextFormField(
-                  controller: _mobileController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'Mobile Number *',
-                    hintText: '1234567890',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Mobile Number is required';
-                    }
-                    if (!RegExp(r'^\d+$').hasMatch(value.trim())) {
-                      return 'Must contain only digits';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-            ],
+                )
+                .toList(),
+            onCountryCodeChanged: (value) {
+              setState(() {
+                _countryCode = value;
+              });
+            },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Password
-          TextFormField(
+          GlassyPasswordField(
+            label: 'Password',
             controller: _passwordController,
-            obscureText: _obscurePassword,
-            decoration: InputDecoration(
-              labelText: 'Password *',
-              hintText: 'Enter password',
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-            ),
+            required: true,
+            hintText: 'Enter password',
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Password is required';
@@ -338,6 +229,9 @@ class _LoginFormState extends State<_LoginForm> {
                   ),
                 );
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white.withValues(alpha: 0.9),
+              ),
               child: const Text('Forgot Password?'),
             ),
           ),
@@ -346,90 +240,34 @@ class _LoginFormState extends State<_LoginForm> {
 
           // Error message display
           if (_errorMessage != null)
-            Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade300),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: Colors.red.shade700,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _errorMessage!,
-                      style: TextStyle(
-                        color: Colors.red.shade700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Login button
-          SizedBox(
-            height: 48,
-            child: FilledButton(
-              onPressed: _isLoading ? null : _handleLogin,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Log In',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-            ),
-          ),
+            GlassyTheme.glassyErrorContainer(message: _errorMessage!),
 
           const SizedBox(height: 16),
 
+          // Login button
+          GlassySubmitButton(
+            onPressed: _handleLogin,
+            label: 'Log In',
+            isLoading: _isLoading,
+          ),
+
+          const SizedBox(height: 14),
+
           Center(
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 4,
-              children: [
-                Text(
-                  "Don't have an account?",
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                FilledButton.tonal(
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                  onPressed: _isLoading
-                      ? null
-                      : () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const RegisterScreen(),
-                            ),
-                          );
-                        },
-                  child: const Text(
-                    'Register / Sign Up',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
+            child: TextButton(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const RegisterScreen(),
+                        ),
+                      );
+                    },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white.withValues(alpha: 0.9),
+              ),
+              child: const Text("Don't have an account? Sign Up"),
             ),
           ),
         ],
