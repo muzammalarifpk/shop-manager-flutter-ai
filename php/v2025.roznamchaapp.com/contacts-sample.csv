@@ -1,0 +1,5 @@
+name,tag,duedate,email,city,country_code,mobile,number,type,balance_status,balance
+John,a,,hello@example.com,FSD,92,23123,3423,customer,receiveable,1000
+Duo,b,,hello@example.com,Lahore,92,34234,5242,supplier,payable,800
+Imran,c,,hello@example.com,New York,92,5325,342,employee,payable,700
+Modi,d,,modi@example.com,Dehli,91,2342,24234,agents,payable,100

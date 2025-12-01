@@ -1,0 +1,28 @@
+RewriteEngine On
+RewriteCond %{SERVER_PORT} 80
+RewriteRule ^(.*)$ https://www.moqame.com/$1 [R,L]
+
+
+<IfModule mod_rewrite.c>
+
+RewriteEngine on
+RewriteBase /
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-l
+
+RewriteRule ^ index.php%{REQUEST_URI} [L]
+
+</IfModule>
+
+
+
+
+php_flag output_buffering on;
+
+
+
+RewriteEngine on
+
+php_value session.cookie_path "/"
+php_value session.cookie_domain ".moqame.com"

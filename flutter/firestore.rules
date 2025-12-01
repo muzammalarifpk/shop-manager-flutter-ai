@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Allow authenticated users to read any user document (needed for uniqueness checks)
+      // In production, you might want to restrict this further
+      allow read: if request.auth != null;
+      
+      // Allow authenticated users to create their own user document during registration
+      // The document ID must match their Firebase Auth UID
+      allow create: if request.auth != null 
+                   && request.auth.uid == userId
+                   && request.resource.data.firebase_uid == userId;
+      
+      // Allow users to update their own data (but not change firebase_uid)
+      allow update: if request.auth != null 
+                   && request.auth.uid == userId
+                   && request.resource.data.firebase_uid == userId
+                   && resource.data.firebase_uid == userId;
+      
+      // Don't allow delete (users shouldn't delete themselves)
+      allow delete: if false;
+    }
+    
+    // For development/testing - more permissive rules
+    // Comment out the above rules and uncomment these if you need more flexibility
+    // BUT REMOVE THESE BEFORE PRODUCTION!
+    // 
+    // match /users/{document=**} {
+    //   allow read, write: if request.auth != null;
+    // }
+  }
+}
+

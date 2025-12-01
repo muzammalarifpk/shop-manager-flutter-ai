@@ -1,0 +1,71 @@
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Build artifacts
+build/
+dist/
+*.class
+*.jar
+*.war
+*.ear
+
+# Dependencies
+node_modules/
+vendor/
+.cache/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Sensitive configuration files
+**/*-config.php
+**/c-stripe-success.php
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Flutter specific (will be in flutter/.gitignore as well)
+flutter/.dart_tool/
+flutter/.flutter-plugins
+flutter/.flutter-plugins-dependencies
+flutter/.pub/
+flutter/build/
+flutter/pubspec.lock
+
+# Firebase
+*.pem
+*-debug.json
+*-release.json
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+

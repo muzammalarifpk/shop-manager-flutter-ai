@@ -1,0 +1,53 @@
+body{
+  padding: 0;
+  margin: 0 auto;
+  text-align: center;
+  height: auto;
+  background: #e6e6e6;
+}
+
+svg.worldmap{
+  width: 100%;
+}
+
+svg.worldmap path:hover{
+  fill:green;
+}
+
+svg.worldmap path.active{
+  fill:grey;
+}
+
+.worldmaplabels{
+  width: 80%;
+  display: block;
+  margin: 0 auto;
+}
+
+.worldmaplabels .country{
+  float: left;
+  display: inline-block;
+  width: 24.5%;
+  padding: 5px 10px;
+}
+
+.worldmaplabels .country a{
+  text-align: left;
+  text-decoration: none;
+  color: #030303;
+}
+
+.worldmaplabels .country a:hover{
+  color: white;
+  background-color: green;
+}
+
+.worldmaplabels .country h3{
+  padding: 10px 2px;
+}
+
+
+.worldmaplabels .country:hover h3{
+  color: white;
+  background-color: green;
+}

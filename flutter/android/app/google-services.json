@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "493428856672",
+    "project_id": "shop-manager-flutter-ai",
+    "storage_bucket": "shop-manager-flutter-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:493428856672:android:219b706ec2a80311bbb005",
+        "android_client_info": {
+          "package_name": "biz.sparkify.shopmanager.shop_manager_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDh4WMML2eNpEfxQl1yv__bNuRI658jzXY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
