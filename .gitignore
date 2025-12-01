@@ -35,6 +35,9 @@ vendor/
 .env.local
 .env.*.local
 
+# PHP folder (excluded from repository)
+php/
+
 # Sensitive configuration files
 **/*-config.php
 **/c-stripe-success.php
