@@ -35,6 +35,10 @@ class Users extends Table {
   TextColumn get agentCommission => text().withLength(max: 10).nullable()();
   TextColumn get printHeaderNote => text().nullable()();
   TextColumn get printFooterNote => text().nullable()();
+  TextColumn get lendInventory => text().withLength(max: 10).nullable()();
+  TextColumn get printHeader => text().withLength(max: 10).nullable()();
+  TextColumn get printUrduInvoice => text().withLength(max: 10).nullable()();
+  TextColumn get smsNotification => text().withLength(max: 10).nullable()();
   TextColumn get status => text().withLength(max: 20).nullable()();
   TextColumn get privs => text().withLength(max: 255).nullable()();
   TextColumn get accountKeys => text().nullable()(); // JSON string of default_account_keys
@@ -59,7 +63,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -72,6 +76,13 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(users, users.city);
         await m.addColumn(users, users.state);
         await m.addColumn(users, users.country);
+      }
+      if (from < 3) {
+        // Add lend_inventory, print_header, print_urdu_invoice, sms_notification columns
+        await m.addColumn(users, users.lendInventory);
+        await m.addColumn(users, users.printHeader);
+        await m.addColumn(users, users.printUrduInvoice);
+        await m.addColumn(users, users.smsNotification);
       }
     },
   );

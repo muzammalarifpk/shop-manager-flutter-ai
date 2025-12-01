@@ -1412,26 +1412,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _expandedSections[title] = !isExpanded;
               });
             },
+            borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               decoration: BoxDecoration(
-                color: isExpanded
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
+                gradient: isExpanded
+                    ? LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.15),
+                          Colors.white.withValues(alpha: 0.08),
+                        ],
+                      )
+                    : LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.08),
+                          Colors.white.withValues(alpha: 0.03),
+                        ],
+                      ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isExpanded
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.15),
+                  width: 1.5,
+                ),
+                boxShadow: isExpanded
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
               child: Row(
                 children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isExpanded
+                            ? [
+                                Colors.cyan.withValues(alpha: 0.4),
+                                Colors.blue.withValues(alpha: 0.4),
+                              ]
+                            : [
+                                Colors.white.withValues(alpha: 0.2),
+                                Colors.white.withValues(alpha: 0.1),
+                              ],
+                      ),
+                      border: Border.all(
+                        color: isExpanded
+                            ? Colors.cyan.withValues(alpha: 0.5)
+                            : Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      _getSectionIcon(title),
+                      color: isExpanded
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.8),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       title,
                       style: TextStyle(
                         color: Colors.white.withValues(
-                          alpha: isExpanded ? 1.0 : 0.8,
+                          alpha: isExpanded ? 1.0 : 0.9,
                         ),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.0,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -1439,10 +1503,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeInOut,
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: Colors.white.withValues(alpha: 0.7),
-                      size: 20,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.white.withValues(alpha: 0.8),
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
@@ -1498,8 +1569,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       onTap: item.onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      minVerticalPadding: 12,
     );
+  }
+
+  IconData _getSectionIcon(String sectionTitle) {
+    switch (sectionTitle) {
+      case 'Main Menu':
+        return Icons.dashboard;
+      case 'Manage':
+        return Icons.settings;
+      case 'Transaction':
+        return Icons.swap_horiz;
+      case 'Reports':
+        return Icons.assessment;
+      case 'History':
+        return Icons.history;
+      case 'Utilities':
+        return Icons.build;
+      case 'Settings':
+        return Icons.settings_applications;
+      default:
+        return Icons.folder;
+    }
   }
 
   void _showComingSoon(BuildContext context, String feature) {

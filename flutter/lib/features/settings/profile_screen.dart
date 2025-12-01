@@ -1,8 +1,13 @@
 import 'dart:ui';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../../widgets/glassy_theme_widgets.dart';
 import '../../widgets/custom_notifications.dart';
 import '../auth/auth_service.dart';
@@ -61,6 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+    _loadSavedLogo();
   }
 
   @override
@@ -107,6 +113,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _negative = user.negative ?? 'off';
           _barcode = user.barcode ?? 'off';
           _tax = user.tax ?? 'off';
+          _lendInventory = user.lendInventory ?? 'off';
+          _printHeader = user.printHeader ?? 'off';
+          _printUrduInvoice = user.printUrduInvoice ?? 'off';
+          _smsNotification = user.smsNotification ?? 'off';
 
           // Reset logo image selection when reloading
           _selectedLogoImage = null;
@@ -137,9 +147,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       if (image != null) {
-        setState(() {
-          _selectedLogoImage = File(image.path);
-        });
+        // Crop the image to 256x256
+        final croppedFile = await ImageCropper().cropImage(
+          sourcePath: image.path,
+          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+          compressFormat: ImageCompressFormat.png,
+          compressQuality: 100,
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Crop Logo',
+              toolbarColor: Colors.blue,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.square,
+              lockAspectRatio: true,
+            ),
+            IOSUiSettings(
+              title: 'Crop Logo',
+              aspectRatioLockEnabled: true,
+              resetAspectRatioEnabled: false,
+            ),
+          ],
+        );
+
+        if (croppedFile != null) {
+          // Resize to exactly 256x256
+          final resizedFile = await _resizeImage(croppedFile.path, 256, 256);
+          
+          // Save to app directory
+          final savedFile = await _saveLogoToApp(resizedFile);
+          
+          setState(() {
+            _selectedLogoImage = savedFile;
+          });
+        }
       }
     } on PlatformException catch (e) {
       if (mounted) {
@@ -159,6 +199,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
           message: 'Failed to pick image: ${e.toString()}',
         );
       }
+    }
+  }
+
+  Future<File> _resizeImage(String imagePath, int width, int height) async {
+    // Read the image file
+    final imageBytes = await File(imagePath).readAsBytes();
+    final originalImage = img.decodeImage(imageBytes);
+    
+    if (originalImage == null) {
+      throw Exception('Failed to decode image');
+    }
+    
+    // Resize to exact dimensions
+    final resizedImage = img.copyResize(
+      originalImage,
+      width: width,
+      height: height,
+      interpolation: img.Interpolation.cubic,
+    );
+    
+    // Encode as PNG
+    final resizedBytes = Uint8List.fromList(img.encodePng(resizedImage));
+    
+    // Save to temporary file
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File(path.join(tempDir.path, 'logo_temp_${DateTime.now().millisecondsSinceEpoch}.png'));
+    await tempFile.writeAsBytes(resizedBytes);
+    
+    return tempFile;
+  }
+
+  Future<File> _saveLogoToApp(File imageFile) async {
+    // Get app documents directory
+    final appDir = await getApplicationDocumentsDirectory();
+    final logoDir = Directory(path.join(appDir.path, 'logos'));
+    
+    // Create logos directory if it doesn't exist
+    if (!await logoDir.exists()) {
+      await logoDir.create(recursive: true);
+    }
+    
+    // Save with user number as filename (if available) or timestamp
+    final user = await _authService.getCurrentUser();
+    final fileName = user != null 
+        ? 'logo_${user.number.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.png'
+        : 'logo_${DateTime.now().millisecondsSinceEpoch}.png';
+    
+    final savedFile = File(path.join(logoDir.path, fileName));
+    
+    // Copy the resized image to app directory
+    await imageFile.copy(savedFile.path);
+    
+    return savedFile;
+  }
+
+  Future<void> _loadSavedLogo() async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final logoDir = Directory(path.join(appDir.path, 'logos'));
+      
+      if (await logoDir.exists()) {
+        final user = await _authService.getCurrentUser();
+        if (user != null) {
+          final fileName = 'logo_${user.number.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.png';
+          final logoFile = File(path.join(logoDir.path, fileName));
+          
+          if (await logoFile.exists()) {
+            setState(() {
+              _selectedLogoImage = logoFile;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // Silently fail - no saved logo is fine
     }
   }
 
@@ -210,6 +325,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? null
             : _printFooterNoteController.text.trim(),
         printDefaultTemplate: _printDefaultTemplate,
+        lendInventory: _lendInventory,
+        printHeader: _printHeader,
+        printUrduInvoice: _printUrduInvoice,
+        smsNotification: _smsNotification,
         logoPath: null, // TODO: Upload logo to Firebase Storage and get URL
       );
 
@@ -615,9 +734,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                       BorderRadius.circular(12),
                                                   child: Image.file(
                                                     _selectedLogoImage!,
-                                                    height: 200,
-                                                    width: double.infinity,
-                                                    fit: BoxFit.contain,
+                                                    height: 256,
+                                                    width: 256,
+                                                    fit: BoxFit.cover,
                                                   ),
                                                 ),
                                                 const SizedBox(height: 12),

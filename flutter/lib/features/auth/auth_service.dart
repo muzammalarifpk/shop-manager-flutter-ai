@@ -652,9 +652,13 @@ class AuthService {
           barcode: Value(userData['barcode']),
           logo: Value(logoUrl),
           salesmanCommission: Value(userData['salesman_commission']),
-          agentCommission: Value(userData['agent_commission']),
+          agentCommission: Value(userData['agent_commision']),
           printHeaderNote: Value(userData['print_header_note']),
           printFooterNote: Value(userData['print_footer_note']),
+          lendInventory: Value(userData['lend_inventory']),
+          printHeader: Value(userData['print_header']),
+          printUrduInvoice: Value(userData['print_urdu_invoice']),
+          smsNotification: Value(userData['smsnotification']),
           status: Value(userData['status'] ?? 'published'),
           privs: Value(userData['privs'] ?? '*'),
           accountKeys: Value(userData['default_account_keys']?.toString()),
@@ -793,6 +797,10 @@ class AuthService {
     String? printHeaderNote,
     String? printFooterNote,
     String? printDefaultTemplate,
+    String? lendInventory,
+    String? printHeader,
+    String? printUrduInvoice,
+    String? smsNotification,
     String? logoPath,
   }) async {
     try {
@@ -895,6 +903,18 @@ class AuthService {
       if (printDefaultTemplate != null && printDefaultTemplate.isNotEmpty) {
         updateData['print_default_template'] = printDefaultTemplate;
       }
+      if (lendInventory != null) {
+        updateData['lend_inventory'] = lendInventory;
+      }
+      if (printHeader != null) {
+        updateData['print_header'] = printHeader;
+      }
+      if (printUrduInvoice != null) {
+        updateData['print_urdu_invoice'] = printUrduInvoice;
+      }
+      if (smsNotification != null) {
+        updateData['smsnotification'] = smsNotification;
+      }
       if (logoPath != null && logoPath.isNotEmpty) {
         updateData['logo'] = logoPath;
       }
@@ -935,6 +955,10 @@ class AuthService {
         agentCommission: Value(updatedUserData['agent_commision']),
         printHeaderNote: Value(updatedUserData['print_header_note']),
         printFooterNote: Value(updatedUserData['print_footer_note']),
+        lendInventory: Value(updatedUserData['lend_inventory']),
+        printHeader: Value(updatedUserData['print_header']),
+        printUrduInvoice: Value(updatedUserData['print_urdu_invoice']),
+        smsNotification: Value(updatedUserData['smsnotification']),
         updatedAt: Value(DateTime.now()),
       );
 

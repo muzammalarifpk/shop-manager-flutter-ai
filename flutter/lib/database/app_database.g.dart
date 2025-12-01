@@ -301,6 +301,54 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _lendInventoryMeta = const VerificationMeta(
+    'lendInventory',
+  );
+  @override
+  late final GeneratedColumn<String> lendInventory = GeneratedColumn<String>(
+    'lend_inventory',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 10),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _printHeaderMeta = const VerificationMeta(
+    'printHeader',
+  );
+  @override
+  late final GeneratedColumn<String> printHeader = GeneratedColumn<String>(
+    'print_header',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 10),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _printUrduInvoiceMeta = const VerificationMeta(
+    'printUrduInvoice',
+  );
+  @override
+  late final GeneratedColumn<String> printUrduInvoice = GeneratedColumn<String>(
+    'print_urdu_invoice',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 10),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _smsNotificationMeta = const VerificationMeta(
+    'smsNotification',
+  );
+  @override
+  late final GeneratedColumn<String> smsNotification = GeneratedColumn<String>(
+    'sms_notification',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 10),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -384,6 +432,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     agentCommission,
     printHeaderNote,
     printFooterNote,
+    lendInventory,
+    printHeader,
+    printUrduInvoice,
+    smsNotification,
     status,
     privs,
     accountKeys,
@@ -593,6 +645,42 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         ),
       );
     }
+    if (data.containsKey('lend_inventory')) {
+      context.handle(
+        _lendInventoryMeta,
+        lendInventory.isAcceptableOrUnknown(
+          data['lend_inventory']!,
+          _lendInventoryMeta,
+        ),
+      );
+    }
+    if (data.containsKey('print_header')) {
+      context.handle(
+        _printHeaderMeta,
+        printHeader.isAcceptableOrUnknown(
+          data['print_header']!,
+          _printHeaderMeta,
+        ),
+      );
+    }
+    if (data.containsKey('print_urdu_invoice')) {
+      context.handle(
+        _printUrduInvoiceMeta,
+        printUrduInvoice.isAcceptableOrUnknown(
+          data['print_urdu_invoice']!,
+          _printUrduInvoiceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sms_notification')) {
+      context.handle(
+        _smsNotificationMeta,
+        smsNotification.isAcceptableOrUnknown(
+          data['sms_notification']!,
+          _smsNotificationMeta,
+        ),
+      );
+    }
     if (data.containsKey('status')) {
       context.handle(
         _statusMeta,
@@ -739,6 +827,22 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.string,
         data['${effectivePrefix}print_footer_note'],
       ),
+      lendInventory: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}lend_inventory'],
+      ),
+      printHeader: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}print_header'],
+      ),
+      printUrduInvoice: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}print_urdu_invoice'],
+      ),
+      smsNotification: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sms_notification'],
+      ),
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
@@ -795,6 +899,10 @@ class User extends DataClass implements Insertable<User> {
   final String? agentCommission;
   final String? printHeaderNote;
   final String? printFooterNote;
+  final String? lendInventory;
+  final String? printHeader;
+  final String? printUrduInvoice;
+  final String? smsNotification;
   final String? status;
   final String? privs;
   final String? accountKeys;
@@ -827,6 +935,10 @@ class User extends DataClass implements Insertable<User> {
     this.agentCommission,
     this.printHeaderNote,
     this.printFooterNote,
+    this.lendInventory,
+    this.printHeader,
+    this.printUrduInvoice,
+    this.smsNotification,
     this.status,
     this.privs,
     this.accountKeys,
@@ -904,6 +1016,18 @@ class User extends DataClass implements Insertable<User> {
     if (!nullToAbsent || printFooterNote != null) {
       map['print_footer_note'] = Variable<String>(printFooterNote);
     }
+    if (!nullToAbsent || lendInventory != null) {
+      map['lend_inventory'] = Variable<String>(lendInventory);
+    }
+    if (!nullToAbsent || printHeader != null) {
+      map['print_header'] = Variable<String>(printHeader);
+    }
+    if (!nullToAbsent || printUrduInvoice != null) {
+      map['print_urdu_invoice'] = Variable<String>(printUrduInvoice);
+    }
+    if (!nullToAbsent || smsNotification != null) {
+      map['sms_notification'] = Variable<String>(smsNotification);
+    }
     if (!nullToAbsent || status != null) {
       map['status'] = Variable<String>(status);
     }
@@ -978,6 +1102,18 @@ class User extends DataClass implements Insertable<User> {
       printFooterNote: printFooterNote == null && nullToAbsent
           ? const Value.absent()
           : Value(printFooterNote),
+      lendInventory: lendInventory == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lendInventory),
+      printHeader: printHeader == null && nullToAbsent
+          ? const Value.absent()
+          : Value(printHeader),
+      printUrduInvoice: printUrduInvoice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(printUrduInvoice),
+      smsNotification: smsNotification == null && nullToAbsent
+          ? const Value.absent()
+          : Value(smsNotification),
       status: status == null && nullToAbsent
           ? const Value.absent()
           : Value(status),
@@ -1026,6 +1162,10 @@ class User extends DataClass implements Insertable<User> {
       agentCommission: serializer.fromJson<String?>(json['agentCommission']),
       printHeaderNote: serializer.fromJson<String?>(json['printHeaderNote']),
       printFooterNote: serializer.fromJson<String?>(json['printFooterNote']),
+      lendInventory: serializer.fromJson<String?>(json['lendInventory']),
+      printHeader: serializer.fromJson<String?>(json['printHeader']),
+      printUrduInvoice: serializer.fromJson<String?>(json['printUrduInvoice']),
+      smsNotification: serializer.fromJson<String?>(json['smsNotification']),
       status: serializer.fromJson<String?>(json['status']),
       privs: serializer.fromJson<String?>(json['privs']),
       accountKeys: serializer.fromJson<String?>(json['accountKeys']),
@@ -1063,6 +1203,10 @@ class User extends DataClass implements Insertable<User> {
       'agentCommission': serializer.toJson<String?>(agentCommission),
       'printHeaderNote': serializer.toJson<String?>(printHeaderNote),
       'printFooterNote': serializer.toJson<String?>(printFooterNote),
+      'lendInventory': serializer.toJson<String?>(lendInventory),
+      'printHeader': serializer.toJson<String?>(printHeader),
+      'printUrduInvoice': serializer.toJson<String?>(printUrduInvoice),
+      'smsNotification': serializer.toJson<String?>(smsNotification),
       'status': serializer.toJson<String?>(status),
       'privs': serializer.toJson<String?>(privs),
       'accountKeys': serializer.toJson<String?>(accountKeys),
@@ -1098,6 +1242,10 @@ class User extends DataClass implements Insertable<User> {
     Value<String?> agentCommission = const Value.absent(),
     Value<String?> printHeaderNote = const Value.absent(),
     Value<String?> printFooterNote = const Value.absent(),
+    Value<String?> lendInventory = const Value.absent(),
+    Value<String?> printHeader = const Value.absent(),
+    Value<String?> printUrduInvoice = const Value.absent(),
+    Value<String?> smsNotification = const Value.absent(),
     Value<String?> status = const Value.absent(),
     Value<String?> privs = const Value.absent(),
     Value<String?> accountKeys = const Value.absent(),
@@ -1140,6 +1288,16 @@ class User extends DataClass implements Insertable<User> {
     printFooterNote: printFooterNote.present
         ? printFooterNote.value
         : this.printFooterNote,
+    lendInventory: lendInventory.present
+        ? lendInventory.value
+        : this.lendInventory,
+    printHeader: printHeader.present ? printHeader.value : this.printHeader,
+    printUrduInvoice: printUrduInvoice.present
+        ? printUrduInvoice.value
+        : this.printUrduInvoice,
+    smsNotification: smsNotification.present
+        ? smsNotification.value
+        : this.smsNotification,
     status: status.present ? status.value : this.status,
     privs: privs.present ? privs.value : this.privs,
     accountKeys: accountKeys.present ? accountKeys.value : this.accountKeys,
@@ -1194,6 +1352,18 @@ class User extends DataClass implements Insertable<User> {
       printFooterNote: data.printFooterNote.present
           ? data.printFooterNote.value
           : this.printFooterNote,
+      lendInventory: data.lendInventory.present
+          ? data.lendInventory.value
+          : this.lendInventory,
+      printHeader: data.printHeader.present
+          ? data.printHeader.value
+          : this.printHeader,
+      printUrduInvoice: data.printUrduInvoice.present
+          ? data.printUrduInvoice.value
+          : this.printUrduInvoice,
+      smsNotification: data.smsNotification.present
+          ? data.smsNotification.value
+          : this.smsNotification,
       status: data.status.present ? data.status.value : this.status,
       privs: data.privs.present ? data.privs.value : this.privs,
       accountKeys: data.accountKeys.present
@@ -1233,6 +1403,10 @@ class User extends DataClass implements Insertable<User> {
           ..write('agentCommission: $agentCommission, ')
           ..write('printHeaderNote: $printHeaderNote, ')
           ..write('printFooterNote: $printFooterNote, ')
+          ..write('lendInventory: $lendInventory, ')
+          ..write('printHeader: $printHeader, ')
+          ..write('printUrduInvoice: $printUrduInvoice, ')
+          ..write('smsNotification: $smsNotification, ')
           ..write('status: $status, ')
           ..write('privs: $privs, ')
           ..write('accountKeys: $accountKeys, ')
@@ -1270,6 +1444,10 @@ class User extends DataClass implements Insertable<User> {
     agentCommission,
     printHeaderNote,
     printFooterNote,
+    lendInventory,
+    printHeader,
+    printUrduInvoice,
+    smsNotification,
     status,
     privs,
     accountKeys,
@@ -1306,6 +1484,10 @@ class User extends DataClass implements Insertable<User> {
           other.agentCommission == this.agentCommission &&
           other.printHeaderNote == this.printHeaderNote &&
           other.printFooterNote == this.printFooterNote &&
+          other.lendInventory == this.lendInventory &&
+          other.printHeader == this.printHeader &&
+          other.printUrduInvoice == this.printUrduInvoice &&
+          other.smsNotification == this.smsNotification &&
           other.status == this.status &&
           other.privs == this.privs &&
           other.accountKeys == this.accountKeys &&
@@ -1340,6 +1522,10 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String?> agentCommission;
   final Value<String?> printHeaderNote;
   final Value<String?> printFooterNote;
+  final Value<String?> lendInventory;
+  final Value<String?> printHeader;
+  final Value<String?> printUrduInvoice;
+  final Value<String?> smsNotification;
   final Value<String?> status;
   final Value<String?> privs;
   final Value<String?> accountKeys;
@@ -1372,6 +1558,10 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.agentCommission = const Value.absent(),
     this.printHeaderNote = const Value.absent(),
     this.printFooterNote = const Value.absent(),
+    this.lendInventory = const Value.absent(),
+    this.printHeader = const Value.absent(),
+    this.printUrduInvoice = const Value.absent(),
+    this.smsNotification = const Value.absent(),
     this.status = const Value.absent(),
     this.privs = const Value.absent(),
     this.accountKeys = const Value.absent(),
@@ -1405,6 +1595,10 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.agentCommission = const Value.absent(),
     this.printHeaderNote = const Value.absent(),
     this.printFooterNote = const Value.absent(),
+    this.lendInventory = const Value.absent(),
+    this.printHeader = const Value.absent(),
+    this.printUrduInvoice = const Value.absent(),
+    this.smsNotification = const Value.absent(),
     this.status = const Value.absent(),
     this.privs = const Value.absent(),
     this.accountKeys = const Value.absent(),
@@ -1441,6 +1635,10 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<String>? agentCommission,
     Expression<String>? printHeaderNote,
     Expression<String>? printFooterNote,
+    Expression<String>? lendInventory,
+    Expression<String>? printHeader,
+    Expression<String>? printUrduInvoice,
+    Expression<String>? smsNotification,
     Expression<String>? status,
     Expression<String>? privs,
     Expression<String>? accountKeys,
@@ -1474,6 +1672,10 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (agentCommission != null) 'agent_commission': agentCommission,
       if (printHeaderNote != null) 'print_header_note': printHeaderNote,
       if (printFooterNote != null) 'print_footer_note': printFooterNote,
+      if (lendInventory != null) 'lend_inventory': lendInventory,
+      if (printHeader != null) 'print_header': printHeader,
+      if (printUrduInvoice != null) 'print_urdu_invoice': printUrduInvoice,
+      if (smsNotification != null) 'sms_notification': smsNotification,
       if (status != null) 'status': status,
       if (privs != null) 'privs': privs,
       if (accountKeys != null) 'account_keys': accountKeys,
@@ -1509,6 +1711,10 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<String?>? agentCommission,
     Value<String?>? printHeaderNote,
     Value<String?>? printFooterNote,
+    Value<String?>? lendInventory,
+    Value<String?>? printHeader,
+    Value<String?>? printUrduInvoice,
+    Value<String?>? smsNotification,
     Value<String?>? status,
     Value<String?>? privs,
     Value<String?>? accountKeys,
@@ -1542,6 +1748,10 @@ class UsersCompanion extends UpdateCompanion<User> {
       agentCommission: agentCommission ?? this.agentCommission,
       printHeaderNote: printHeaderNote ?? this.printHeaderNote,
       printFooterNote: printFooterNote ?? this.printFooterNote,
+      lendInventory: lendInventory ?? this.lendInventory,
+      printHeader: printHeader ?? this.printHeader,
+      printUrduInvoice: printUrduInvoice ?? this.printUrduInvoice,
+      smsNotification: smsNotification ?? this.smsNotification,
       status: status ?? this.status,
       privs: privs ?? this.privs,
       accountKeys: accountKeys ?? this.accountKeys,
@@ -1631,6 +1841,18 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (printFooterNote.present) {
       map['print_footer_note'] = Variable<String>(printFooterNote.value);
     }
+    if (lendInventory.present) {
+      map['lend_inventory'] = Variable<String>(lendInventory.value);
+    }
+    if (printHeader.present) {
+      map['print_header'] = Variable<String>(printHeader.value);
+    }
+    if (printUrduInvoice.present) {
+      map['print_urdu_invoice'] = Variable<String>(printUrduInvoice.value);
+    }
+    if (smsNotification.present) {
+      map['sms_notification'] = Variable<String>(smsNotification.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
@@ -1678,6 +1900,10 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('agentCommission: $agentCommission, ')
           ..write('printHeaderNote: $printHeaderNote, ')
           ..write('printFooterNote: $printFooterNote, ')
+          ..write('lendInventory: $lendInventory, ')
+          ..write('printHeader: $printHeader, ')
+          ..write('printUrduInvoice: $printUrduInvoice, ')
+          ..write('smsNotification: $smsNotification, ')
           ..write('status: $status, ')
           ..write('privs: $privs, ')
           ..write('accountKeys: $accountKeys, ')
@@ -2142,6 +2368,10 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<String?> agentCommission,
       Value<String?> printHeaderNote,
       Value<String?> printFooterNote,
+      Value<String?> lendInventory,
+      Value<String?> printHeader,
+      Value<String?> printUrduInvoice,
+      Value<String?> smsNotification,
       Value<String?> status,
       Value<String?> privs,
       Value<String?> accountKeys,
@@ -2176,6 +2406,10 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String?> agentCommission,
       Value<String?> printHeaderNote,
       Value<String?> printFooterNote,
+      Value<String?> lendInventory,
+      Value<String?> printHeader,
+      Value<String?> printUrduInvoice,
+      Value<String?> smsNotification,
       Value<String?> status,
       Value<String?> privs,
       Value<String?> accountKeys,
@@ -2342,6 +2576,26 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<String> get printFooterNote => $composableBuilder(
     column: $table.printFooterNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lendInventory => $composableBuilder(
+    column: $table.lendInventory,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get printHeader => $composableBuilder(
+    column: $table.printHeader,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get printUrduInvoice => $composableBuilder(
+    column: $table.printUrduInvoice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get smsNotification => $composableBuilder(
+    column: $table.smsNotification,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2535,6 +2789,26 @@ class $$UsersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get lendInventory => $composableBuilder(
+    column: $table.lendInventory,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get printHeader => $composableBuilder(
+    column: $table.printHeader,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get printUrduInvoice => $composableBuilder(
+    column: $table.printUrduInvoice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get smsNotification => $composableBuilder(
+    column: $table.smsNotification,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -2668,6 +2942,26 @@ class $$UsersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get lendInventory => $composableBuilder(
+    column: $table.lendInventory,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get printHeader => $composableBuilder(
+    column: $table.printHeader,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get printUrduInvoice => $composableBuilder(
+    column: $table.printUrduInvoice,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get smsNotification => $composableBuilder(
+    column: $table.smsNotification,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
@@ -2765,6 +3059,10 @@ class $$UsersTableTableManager
                 Value<String?> agentCommission = const Value.absent(),
                 Value<String?> printHeaderNote = const Value.absent(),
                 Value<String?> printFooterNote = const Value.absent(),
+                Value<String?> lendInventory = const Value.absent(),
+                Value<String?> printHeader = const Value.absent(),
+                Value<String?> printUrduInvoice = const Value.absent(),
+                Value<String?> smsNotification = const Value.absent(),
                 Value<String?> status = const Value.absent(),
                 Value<String?> privs = const Value.absent(),
                 Value<String?> accountKeys = const Value.absent(),
@@ -2797,6 +3095,10 @@ class $$UsersTableTableManager
                 agentCommission: agentCommission,
                 printHeaderNote: printHeaderNote,
                 printFooterNote: printFooterNote,
+                lendInventory: lendInventory,
+                printHeader: printHeader,
+                printUrduInvoice: printUrduInvoice,
+                smsNotification: smsNotification,
                 status: status,
                 privs: privs,
                 accountKeys: accountKeys,
@@ -2831,6 +3133,10 @@ class $$UsersTableTableManager
                 Value<String?> agentCommission = const Value.absent(),
                 Value<String?> printHeaderNote = const Value.absent(),
                 Value<String?> printFooterNote = const Value.absent(),
+                Value<String?> lendInventory = const Value.absent(),
+                Value<String?> printHeader = const Value.absent(),
+                Value<String?> printUrduInvoice = const Value.absent(),
+                Value<String?> smsNotification = const Value.absent(),
                 Value<String?> status = const Value.absent(),
                 Value<String?> privs = const Value.absent(),
                 Value<String?> accountKeys = const Value.absent(),
@@ -2863,6 +3169,10 @@ class $$UsersTableTableManager
                 agentCommission: agentCommission,
                 printHeaderNote: printHeaderNote,
                 printFooterNote: printFooterNote,
+                lendInventory: lendInventory,
+                printHeader: printHeader,
+                printUrduInvoice: printUrduInvoice,
+                smsNotification: smsNotification,
                 status: status,
                 privs: privs,
                 accountKeys: accountKeys,
