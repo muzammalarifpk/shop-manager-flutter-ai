@@ -124,6 +124,38 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _cityMeta = const VerificationMeta('city');
+  @override
+  late final GeneratedColumn<String> city = GeneratedColumn<String>(
+    'city',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 100),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 100),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _countryMeta = const VerificationMeta(
+    'country',
+  );
+  @override
+  late final GeneratedColumn<String> country = GeneratedColumn<String>(
+    'country',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 100),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _currencyMeta = const VerificationMeta(
     'currency',
   );
@@ -336,6 +368,9 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     industryType,
     businessType,
     address,
+    city,
+    state,
+    country,
     currency,
     gst,
     vat,
@@ -445,6 +480,24 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       context.handle(
         _addressMeta,
         address.isAcceptableOrUnknown(data['address']!, _addressMeta),
+      );
+    }
+    if (data.containsKey('city')) {
+      context.handle(
+        _cityMeta,
+        city.isAcceptableOrUnknown(data['city']!, _cityMeta),
+      );
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
+      );
+    }
+    if (data.containsKey('country')) {
+      context.handle(
+        _countryMeta,
+        country.isAcceptableOrUnknown(data['country']!, _countryMeta),
       );
     }
     if (data.containsKey('currency')) {
@@ -622,6 +675,18 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.string,
         data['${effectivePrefix}address'],
       ),
+      city: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}city'],
+      ),
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      ),
+      country: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}country'],
+      ),
       currency: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}currency'],
@@ -714,6 +779,9 @@ class User extends DataClass implements Insertable<User> {
   final String? industryType;
   final String? businessType;
   final String? address;
+  final String? city;
+  final String? state;
+  final String? country;
   final String? currency;
   final String? gst;
   final String? vat;
@@ -743,6 +811,9 @@ class User extends DataClass implements Insertable<User> {
     this.industryType,
     this.businessType,
     this.address,
+    this.city,
+    this.state,
+    this.country,
     this.currency,
     this.gst,
     this.vat,
@@ -784,6 +855,15 @@ class User extends DataClass implements Insertable<User> {
     }
     if (!nullToAbsent || address != null) {
       map['address'] = Variable<String>(address);
+    }
+    if (!nullToAbsent || city != null) {
+      map['city'] = Variable<String>(city);
+    }
+    if (!nullToAbsent || state != null) {
+      map['state'] = Variable<String>(state);
+    }
+    if (!nullToAbsent || country != null) {
+      map['country'] = Variable<String>(country);
     }
     if (!nullToAbsent || currency != null) {
       map['currency'] = Variable<String>(currency);
@@ -860,6 +940,13 @@ class User extends DataClass implements Insertable<User> {
       address: address == null && nullToAbsent
           ? const Value.absent()
           : Value(address),
+      city: city == null && nullToAbsent ? const Value.absent() : Value(city),
+      state: state == null && nullToAbsent
+          ? const Value.absent()
+          : Value(state),
+      country: country == null && nullToAbsent
+          ? const Value.absent()
+          : Value(country),
       currency: currency == null && nullToAbsent
           ? const Value.absent()
           : Value(currency),
@@ -921,6 +1008,9 @@ class User extends DataClass implements Insertable<User> {
       industryType: serializer.fromJson<String?>(json['industryType']),
       businessType: serializer.fromJson<String?>(json['businessType']),
       address: serializer.fromJson<String?>(json['address']),
+      city: serializer.fromJson<String?>(json['city']),
+      state: serializer.fromJson<String?>(json['state']),
+      country: serializer.fromJson<String?>(json['country']),
       currency: serializer.fromJson<String?>(json['currency']),
       gst: serializer.fromJson<String?>(json['gst']),
       vat: serializer.fromJson<String?>(json['vat']),
@@ -957,6 +1047,9 @@ class User extends DataClass implements Insertable<User> {
       'industryType': serializer.toJson<String?>(industryType),
       'businessType': serializer.toJson<String?>(businessType),
       'address': serializer.toJson<String?>(address),
+      'city': serializer.toJson<String?>(city),
+      'state': serializer.toJson<String?>(state),
+      'country': serializer.toJson<String?>(country),
       'currency': serializer.toJson<String?>(currency),
       'gst': serializer.toJson<String?>(gst),
       'vat': serializer.toJson<String?>(vat),
@@ -989,6 +1082,9 @@ class User extends DataClass implements Insertable<User> {
     Value<String?> industryType = const Value.absent(),
     Value<String?> businessType = const Value.absent(),
     Value<String?> address = const Value.absent(),
+    Value<String?> city = const Value.absent(),
+    Value<String?> state = const Value.absent(),
+    Value<String?> country = const Value.absent(),
     Value<String?> currency = const Value.absent(),
     Value<String?> gst = const Value.absent(),
     Value<String?> vat = const Value.absent(),
@@ -1018,6 +1114,9 @@ class User extends DataClass implements Insertable<User> {
     industryType: industryType.present ? industryType.value : this.industryType,
     businessType: businessType.present ? businessType.value : this.businessType,
     address: address.present ? address.value : this.address,
+    city: city.present ? city.value : this.city,
+    state: state.present ? state.value : this.state,
+    country: country.present ? country.value : this.country,
     currency: currency.present ? currency.value : this.currency,
     gst: gst.present ? gst.value : this.gst,
     vat: vat.present ? vat.value : this.vat,
@@ -1069,6 +1168,9 @@ class User extends DataClass implements Insertable<User> {
           ? data.businessType.value
           : this.businessType,
       address: data.address.present ? data.address.value : this.address,
+      city: data.city.present ? data.city.value : this.city,
+      state: data.state.present ? data.state.value : this.state,
+      country: data.country.present ? data.country.value : this.country,
       currency: data.currency.present ? data.currency.value : this.currency,
       gst: data.gst.present ? data.gst.value : this.gst,
       vat: data.vat.present ? data.vat.value : this.vat,
@@ -1115,6 +1217,9 @@ class User extends DataClass implements Insertable<User> {
           ..write('industryType: $industryType, ')
           ..write('businessType: $businessType, ')
           ..write('address: $address, ')
+          ..write('city: $city, ')
+          ..write('state: $state, ')
+          ..write('country: $country, ')
           ..write('currency: $currency, ')
           ..write('gst: $gst, ')
           ..write('vat: $vat, ')
@@ -1149,6 +1254,9 @@ class User extends DataClass implements Insertable<User> {
     industryType,
     businessType,
     address,
+    city,
+    state,
+    country,
     currency,
     gst,
     vat,
@@ -1182,6 +1290,9 @@ class User extends DataClass implements Insertable<User> {
           other.industryType == this.industryType &&
           other.businessType == this.businessType &&
           other.address == this.address &&
+          other.city == this.city &&
+          other.state == this.state &&
+          other.country == this.country &&
           other.currency == this.currency &&
           other.gst == this.gst &&
           other.vat == this.vat &&
@@ -1213,6 +1324,9 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String?> industryType;
   final Value<String?> businessType;
   final Value<String?> address;
+  final Value<String?> city;
+  final Value<String?> state;
+  final Value<String?> country;
   final Value<String?> currency;
   final Value<String?> gst;
   final Value<String?> vat;
@@ -1242,6 +1356,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.industryType = const Value.absent(),
     this.businessType = const Value.absent(),
     this.address = const Value.absent(),
+    this.city = const Value.absent(),
+    this.state = const Value.absent(),
+    this.country = const Value.absent(),
     this.currency = const Value.absent(),
     this.gst = const Value.absent(),
     this.vat = const Value.absent(),
@@ -1272,6 +1389,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.industryType = const Value.absent(),
     this.businessType = const Value.absent(),
     this.address = const Value.absent(),
+    this.city = const Value.absent(),
+    this.state = const Value.absent(),
+    this.country = const Value.absent(),
     this.currency = const Value.absent(),
     this.gst = const Value.absent(),
     this.vat = const Value.absent(),
@@ -1305,6 +1425,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<String>? industryType,
     Expression<String>? businessType,
     Expression<String>? address,
+    Expression<String>? city,
+    Expression<String>? state,
+    Expression<String>? country,
     Expression<String>? currency,
     Expression<String>? gst,
     Expression<String>? vat,
@@ -1335,6 +1458,9 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (industryType != null) 'industry_type': industryType,
       if (businessType != null) 'business_type': businessType,
       if (address != null) 'address': address,
+      if (city != null) 'city': city,
+      if (state != null) 'state': state,
+      if (country != null) 'country': country,
       if (currency != null) 'currency': currency,
       if (gst != null) 'gst': gst,
       if (vat != null) 'vat': vat,
@@ -1367,6 +1493,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<String?>? industryType,
     Value<String?>? businessType,
     Value<String?>? address,
+    Value<String?>? city,
+    Value<String?>? state,
+    Value<String?>? country,
     Value<String?>? currency,
     Value<String?>? gst,
     Value<String?>? vat,
@@ -1397,6 +1526,9 @@ class UsersCompanion extends UpdateCompanion<User> {
       industryType: industryType ?? this.industryType,
       businessType: businessType ?? this.businessType,
       address: address ?? this.address,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      country: country ?? this.country,
       currency: currency ?? this.currency,
       gst: gst ?? this.gst,
       vat: vat ?? this.vat,
@@ -1450,6 +1582,15 @@ class UsersCompanion extends UpdateCompanion<User> {
     }
     if (address.present) {
       map['address'] = Variable<String>(address.value);
+    }
+    if (city.present) {
+      map['city'] = Variable<String>(city.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (country.present) {
+      map['country'] = Variable<String>(country.value);
     }
     if (currency.present) {
       map['currency'] = Variable<String>(currency.value);
@@ -1521,6 +1662,9 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('industryType: $industryType, ')
           ..write('businessType: $businessType, ')
           ..write('address: $address, ')
+          ..write('city: $city, ')
+          ..write('state: $state, ')
+          ..write('country: $country, ')
           ..write('currency: $currency, ')
           ..write('gst: $gst, ')
           ..write('vat: $vat, ')
@@ -1982,6 +2126,9 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<String?> industryType,
       Value<String?> businessType,
       Value<String?> address,
+      Value<String?> city,
+      Value<String?> state,
+      Value<String?> country,
       Value<String?> currency,
       Value<String?> gst,
       Value<String?> vat,
@@ -2013,6 +2160,9 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String?> industryType,
       Value<String?> businessType,
       Value<String?> address,
+      Value<String?> city,
+      Value<String?> state,
+      Value<String?> country,
       Value<String?> currency,
       Value<String?> gst,
       Value<String?> vat,
@@ -2112,6 +2262,21 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<String> get address => $composableBuilder(
     column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get city => $composableBuilder(
+    column: $table.city,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get country => $composableBuilder(
+    column: $table.country,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2290,6 +2455,21 @@ class $$UsersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get city => $composableBuilder(
+    column: $table.city,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get currency => $composableBuilder(
     column: $table.currency,
     builder: (column) => ColumnOrderings(column),
@@ -2430,6 +2610,15 @@ class $$UsersTableAnnotationComposer
   GeneratedColumn<String> get address =>
       $composableBuilder(column: $table.address, builder: (column) => column);
 
+  GeneratedColumn<String> get city =>
+      $composableBuilder(column: $table.city, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<String> get country =>
+      $composableBuilder(column: $table.country, builder: (column) => column);
+
   GeneratedColumn<String> get currency =>
       $composableBuilder(column: $table.currency, builder: (column) => column);
 
@@ -2560,6 +2749,9 @@ class $$UsersTableTableManager
                 Value<String?> industryType = const Value.absent(),
                 Value<String?> businessType = const Value.absent(),
                 Value<String?> address = const Value.absent(),
+                Value<String?> city = const Value.absent(),
+                Value<String?> state = const Value.absent(),
+                Value<String?> country = const Value.absent(),
                 Value<String?> currency = const Value.absent(),
                 Value<String?> gst = const Value.absent(),
                 Value<String?> vat = const Value.absent(),
@@ -2589,6 +2781,9 @@ class $$UsersTableTableManager
                 industryType: industryType,
                 businessType: businessType,
                 address: address,
+                city: city,
+                state: state,
+                country: country,
                 currency: currency,
                 gst: gst,
                 vat: vat,
@@ -2620,6 +2815,9 @@ class $$UsersTableTableManager
                 Value<String?> industryType = const Value.absent(),
                 Value<String?> businessType = const Value.absent(),
                 Value<String?> address = const Value.absent(),
+                Value<String?> city = const Value.absent(),
+                Value<String?> state = const Value.absent(),
+                Value<String?> country = const Value.absent(),
                 Value<String?> currency = const Value.absent(),
                 Value<String?> gst = const Value.absent(),
                 Value<String?> vat = const Value.absent(),
@@ -2649,6 +2847,9 @@ class $$UsersTableTableManager
                 industryType: industryType,
                 businessType: businessType,
                 address: address,
+                city: city,
+                state: state,
+                country: country,
                 currency: currency,
                 gst: gst,
                 vat: vat,

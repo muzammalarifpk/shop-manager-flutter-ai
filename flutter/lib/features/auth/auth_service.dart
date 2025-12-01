@@ -188,7 +188,7 @@ class AuthService {
         }
         rethrow;
       }
-
+      
       // Create default accounts (matching PHP do_register.php)
       Map<String, String> defaultAccountIds = {};
       try {
@@ -639,6 +639,9 @@ class AuthService {
           industryType: Value(userData['industry_type']),
           businessType: Value(userData['business_type']),
           address: Value(userData['address']),
+          city: Value(userData['city']),
+          state: Value(userData['region_name']),
+          country: Value(userData['country_name']),
           currency: Value(userData['currency'] ?? 'Rs '),
           gst: Value(userData['gst']),
           vat: Value(userData['vat']),
@@ -765,6 +768,203 @@ class AuthService {
   Future<bool> isLoggedIn() async {
     final session = await _database.getActiveSession();
     return session != null && _auth.currentUser != null;
+  }
+
+  /// Update user profile in Firestore and local database
+  Future<Map<String, dynamic>> updateProfile({
+    required String businessName,
+    required String address,
+    String? city,
+    String? state,
+    String? country,
+    String? email,
+    String? industryType,
+    String? businessType,
+    required String currency,
+    String? gst,
+    String? vat,
+    String? tax,
+    String? negative,
+    String? secondaryUnits,
+    String? variants,
+    String? barcode,
+    String? salesmanCommission,
+    String? agentCommission,
+    String? printHeaderNote,
+    String? printFooterNote,
+    String? printDefaultTemplate,
+    String? logoPath,
+  }) async {
+    try {
+      final currentUser = await getCurrentUser();
+      if (currentUser == null) {
+        return {
+          'success': false,
+          'code': 401,
+          'message': 'User not logged in',
+        };
+      }
+
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) {
+        return {
+          'success': false,
+          'code': 401,
+          'message': 'Firebase user not found',
+        };
+      }
+
+      // Find user document in Firestore
+      final userQuery = await _firestore
+          .collection('users')
+          .where('number', isEqualTo: currentUser.number)
+          .limit(1)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        return {
+          'success': false,
+          'code': 404,
+          'message': 'User document not found in Firestore',
+        };
+      }
+
+      final userDocRef = userQuery.docs.first.reference;
+      final timestamp = FieldValue.serverTimestamp();
+
+      // Prepare update data
+      final updateData = <String, dynamic>{
+        'business_name': businessName,
+        'address': address,
+        'last_updated': timestamp,
+        'currency': currency,
+      };
+
+      // Add optional fields if provided
+      if (city != null && city.isNotEmpty) {
+        updateData['city'] = city;
+      }
+      if (state != null && state.isNotEmpty) {
+        updateData['region_name'] = state;
+      }
+      if (country != null && country.isNotEmpty) {
+        updateData['country_name'] = country;
+      }
+      if (email != null && email.isNotEmpty) {
+        updateData['email'] = email;
+      }
+      if (industryType != null && industryType.isNotEmpty) {
+        updateData['industry_type'] = industryType;
+      }
+      if (businessType != null && businessType.isNotEmpty) {
+        updateData['business_type'] = businessType;
+      }
+      if (gst != null && gst.isNotEmpty) {
+        updateData['gst'] = gst;
+      }
+      if (vat != null && vat.isNotEmpty) {
+        updateData['vat'] = vat;
+      }
+      if (tax != null) {
+        updateData['tax'] = tax;
+      }
+      if (negative != null) {
+        updateData['negative'] = negative;
+      }
+      if (secondaryUnits != null) {
+        updateData['secondary_units'] = secondaryUnits;
+      }
+      if (variants != null) {
+        updateData['variants'] = variants;
+      }
+      if (barcode != null) {
+        updateData['barcode'] = barcode;
+      }
+      if (salesmanCommission != null) {
+        updateData['salesman_commission'] = salesmanCommission;
+      }
+      if (agentCommission != null) {
+        updateData['agent_commision'] = agentCommission;
+      }
+      if (printHeaderNote != null) {
+        updateData['print_header_note'] = printHeaderNote;
+      }
+      if (printFooterNote != null) {
+        updateData['print_footer_note'] = printFooterNote;
+      }
+      if (printDefaultTemplate != null && printDefaultTemplate.isNotEmpty) {
+        updateData['print_default_template'] = printDefaultTemplate;
+      }
+      if (logoPath != null && logoPath.isNotEmpty) {
+        updateData['logo'] = logoPath;
+      }
+
+      // Update Firestore
+      await userDocRef.update(updateData);
+
+      // Fetch updated user data from Firestore
+      final updatedUserDoc = await userDocRef.get();
+      final updatedUserData = updatedUserDoc.data()!;
+
+      // Update local database
+      final defaultLogo = 'uploads/images/default-logo.png';
+      final logoUrl = updatedUserData['logo'] != null && updatedUserData['logo'].toString().isNotEmpty
+          ? 'https://shop-manager.roznamchaapp.com/${updatedUserData['logo']}'
+          : 'https://shop-manager.roznamchaapp.com/$defaultLogo';
+
+      final userUpdate = UsersCompanion(
+        id: Value(currentUser.id),
+        businessName: Value(updatedUserData['business_name'] ?? businessName),
+        email: Value(updatedUserData['email']),
+        address: Value(updatedUserData['address']),
+        city: Value(updatedUserData['city']),
+        state: Value(updatedUserData['region_name']),
+        country: Value(updatedUserData['country_name']),
+        industryType: Value(updatedUserData['industry_type']),
+        businessType: Value(updatedUserData['business_type']),
+        currency: Value(updatedUserData['currency'] ?? currency),
+        gst: Value(updatedUserData['gst']),
+        vat: Value(updatedUserData['vat']),
+        tax: Value(updatedUserData['tax']),
+        negative: Value(updatedUserData['negative']),
+        secondaryUnits: Value(updatedUserData['secondary_units']),
+        variants: Value(updatedUserData['variants']),
+        barcode: Value(updatedUserData['barcode']),
+        logo: Value(logoUrl),
+        salesmanCommission: Value(updatedUserData['salesman_commission']),
+        agentCommission: Value(updatedUserData['agent_commision']),
+        printHeaderNote: Value(updatedUserData['print_header_note']),
+        printFooterNote: Value(updatedUserData['print_footer_note']),
+        updatedAt: Value(DateTime.now()),
+      );
+
+      await _database.updateUser(currentUser.id, userUpdate);
+
+      GeneralFunctions.debugPrintSuccess(
+        checkpoint: 30,
+        message: 'Profile updated successfully',
+        data: {'number': currentUser.number},
+      );
+
+      return {
+        'success': true,
+        'code': 200,
+        'message': 'Profile updated successfully',
+      };
+    } catch (e, stackTrace) {
+      GeneralFunctions.debugPrintError(
+        checkpoint: 31,
+        message: 'Failed to update profile',
+        error: e,
+        stackTrace: stackTrace,
+      );
+
+      return {
+        'success': false,
+        'code': 500,
+        'message': 'Failed to update profile: ${e.toString()}',
+      };
+    }
   }
 }
 

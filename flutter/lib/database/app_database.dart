@@ -19,6 +19,9 @@ class Users extends Table {
   TextColumn get industryType => text().withLength(max: 100).nullable()();
   TextColumn get businessType => text().withLength(max: 50).nullable()();
   TextColumn get address => text().nullable()();
+  TextColumn get city => text().withLength(max: 100).nullable()();
+  TextColumn get state => text().withLength(max: 100).nullable()();
+  TextColumn get country => text().withLength(max: 100).nullable()();
   TextColumn get currency => text().withLength(max: 10).nullable()();
   TextColumn get gst => text().withLength(max: 50).nullable()();
   TextColumn get vat => text().withLength(max: 50).nullable()();
@@ -56,7 +59,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -64,7 +67,12 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      // Handle migrations here when schema version changes
+      if (from < 2) {
+        // Add city, state, and country columns
+        await m.addColumn(users, users.city);
+        await m.addColumn(users, users.state);
+        await m.addColumn(users, users.country);
+      }
     },
   );
 
