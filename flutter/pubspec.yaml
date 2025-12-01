@@ -49,6 +49,9 @@ dependencies:
   # Note: Not needed for web as Drift uses IndexedDB on web
   sqlite3_flutter_libs: ^0.5.24
 
+  # Shared preferences for persistent theme storage
+  shared_preferences: ^2.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
