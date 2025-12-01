@@ -3,6 +3,8 @@ import '../../config/app_constants.dart';
 import '../../utils/general_functions.dart';
 import '../settings/theme_picker_screen.dart';
 import '../../widgets/glassy_theme_widgets.dart';
+import '../../widgets/custom_notifications.dart';
+import '../dashboard/dashboard_screen.dart';
 import 'register_screen.dart';
 import 'auth_service.dart';
 
@@ -96,22 +98,23 @@ class _LoginFormState extends State<_LoginForm> {
       });
 
       if (result['success'] == true) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Login successful'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
+        // Show success notification
+        GlassySuccessNotification.show(
+          context,
+          message: result['message'] ?? 'Login successful',
+          icon: Icons.login_rounded,
+          color: Colors.green,
         );
 
-        // Navigate to dashboard/home screen
-        // TODO: Replace with actual dashboard route
-        // Navigator.of(context).pushReplacement(
-        //   MaterialPageRoute(builder: (_) => const DashboardScreen()),
-        // );
+        // Navigate to dashboard after a short delay
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const DashboardScreen()),
+            );
+          }
+        });
 
-        // For now, just show success
         GeneralFunctions.debugPrintSuccess(
           checkpoint: 1,
           message: 'Login successful',

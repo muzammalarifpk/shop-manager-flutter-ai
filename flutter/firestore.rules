@@ -2,10 +2,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Users collection rules
+    // FLEXIBLE DEVELOPMENT RULES
+    // This allows authenticated users to read/write to ANY collection
+    // Perfect for development when adding new tables/collections frequently
+    // 
+    // SECURITY WARNING: These rules are permissive and suitable for development.
+    // For production, you should implement more restrictive rules based on:
+    // - User ownership (owner_mobile, user_id, etc.)
+    // - Document-level permissions
+    // - Role-based access control
+    //
+    // Example production rule structure:
+    // match /{collection}/{document} {
+    //   allow read: if request.auth != null 
+    //            && resource.data.owner_mobile == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.number;
+    //   allow write: if request.auth != null 
+    //             && request.resource.data.owner_mobile == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.number;
+    // }
+    
+    // Allow authenticated users to access any collection/document
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Specific rules for users collection (more restrictive)
+    // These take precedence over the catch-all rule above
     match /users/{userId} {
       // Allow authenticated users to read any user document (needed for uniqueness checks)
-      // In production, you might want to restrict this further
       allow read: if request.auth != null;
       
       // Allow authenticated users to create their own user document during registration
@@ -23,14 +46,6 @@ service cloud.firestore {
       // Don't allow delete (users shouldn't delete themselves)
       allow delete: if false;
     }
-    
-    // For development/testing - more permissive rules
-    // Comment out the above rules and uncomment these if you need more flexibility
-    // BUT REMOVE THESE BEFORE PRODUCTION!
-    // 
-    // match /users/{document=**} {
-    //   allow read, write: if request.auth != null;
-    // }
   }
 }
 

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'config/theme_controller.dart';
+import 'features/auth/auth_service.dart';
 import 'features/auth/login_screen.dart';
+import 'features/dashboard/dashboard_screen.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -28,10 +30,62 @@ class MyApp extends StatelessWidget {
           title: 'RetailPro',
           // All static theme configuration is defined in config/app_theme.dart.
           theme: ThemeController.instance.theme,
-          home: const LoginScreen(),
+          home: const AuthWrapper(),
         );
       },
     );
+  }
+}
+
+/// Wrapper widget that checks authentication status and shows appropriate screen
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  final _authService = AuthService();
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    try {
+      final loggedIn = await _authService.isLoggedIn();
+      setState(() {
+        _isLoggedIn = loggedIn;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoggedIn = false;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return _isLoggedIn ? const DashboardScreen() : const LoginScreen();
   }
 }
 

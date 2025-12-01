@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:drift/drift.dart' show Value;
@@ -187,36 +188,159 @@ class AuthService {
         }
         rethrow;
       }
+
+      // Create default accounts (matching PHP do_register.php)
+      Map<String, String> defaultAccountIds = {};
+      try {
+        defaultAccountIds = await _createDefaultAccounts(number);
+        GeneralFunctions.debugPrintSuccess(
+          checkpoint: 13,
+          message: 'Default accounts creation completed',
+          data: {'accounts_created': defaultAccountIds.length},
+        );
+      } catch (e, stackTrace) {
+        GeneralFunctions.debugPrintError(
+          checkpoint: 10,
+          message: 'Failed to create default accounts',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        // Continue even if accounts creation fails - we'll log it but not fail registration
+      }
+
+      // Create walk-in contact (matching PHP do_register.php)
+      try {
+        await _createWalkInContact(number);
+      } catch (e) {
+        GeneralFunctions.debugPrintError(
+          checkpoint: 11,
+          message: 'Failed to create walk-in contact',
+          error: e,
+        );
+        // Continue even if contact creation fails
+      }
+
+      // Update user's default_account_keys with the account IDs (matching PHP)
+      String defaultAccountKeysJson = '';
+      if (defaultAccountIds.isNotEmpty) {
+        // Convert map to proper JSON format (matching PHP json_encode)
+        defaultAccountKeysJson = jsonEncode(defaultAccountIds);
+        
+        // Update user document with default_account_keys
+        try {
+          await _firestore.collection('users').doc(user.uid).update({
+            'default_account_keys': defaultAccountKeysJson,
+          });
+        } catch (e) {
+          GeneralFunctions.debugPrintError(
+            checkpoint: 12,
+            message: 'Failed to update default_account_keys',
+            error: e,
+          );
+        }
+      }
+
+      // Automatically log in the user after registration (matching PHP behavior)
+      // Fetch user data from Firestore for login
+      final userDoc = await _firestore
+          .collection('users')
+          .where('number', isEqualTo: number)
+          .limit(1)
+          .get();
+
+      if (userDoc.docs.isEmpty) {
+        return {
+          'success': false,
+          'code': 500,
+          'message': 'User created but could not be found for login',
+        };
+      }
+
+      final userDataFromFirestore = userDoc.docs.first.data();
+      final userId = userDoc.docs.first.id;
+
+      // Get Firebase Auth token
+      final token = await user.getIdToken();
+
+      // Prepare user data for local storage
+      final defaultLogo = 'uploads/images/default-logo.png';
+      final logoUrl = userDataFromFirestore['logo'] != null && userDataFromFirestore['logo'].toString().isNotEmpty
+          ? 'https://shop-manager.roznamchaapp.com/${userDataFromFirestore['logo']}'
+          : 'https://shop-manager.roznamchaapp.com/$defaultLogo';
+
+      // Store user in local database
+      final localUser = UsersCompanion.insert(
+        firebaseUid: Value(user.uid),
+        number: number,
+        businessName: userDataFromFirestore['business_name'] ?? businessName,
+        email: Value(userDataFromFirestore['email']),
+        countryCode: userDataFromFirestore['country_code'] ?? countryCode,
+        mobile: userDataFromFirestore['mobile'] ?? mobile,
+        industryType: Value(userDataFromFirestore['industry_type']),
+        businessType: Value(userDataFromFirestore['business_type']),
+        address: Value(userDataFromFirestore['address']),
+        currency: Value(userDataFromFirestore['currency'] ?? 'Rs '),
+        gst: Value(userDataFromFirestore['gst']),
+        vat: Value(userDataFromFirestore['vat']),
+        tax: Value(userDataFromFirestore['tax']),
+        negative: Value(userDataFromFirestore['negative']),
+        secondaryUnits: Value(userDataFromFirestore['secondary_units']),
+        variants: Value(userDataFromFirestore['variants']),
+        barcode: Value(userDataFromFirestore['barcode']),
+        logo: Value(logoUrl),
+        salesmanCommission: Value(userDataFromFirestore['salesman_commission']),
+        agentCommission: Value(userDataFromFirestore['agent_commission']),
+        printHeaderNote: Value(userDataFromFirestore['print_header_note']),
+        printFooterNote: Value(userDataFromFirestore['print_footer_note']),
+        status: Value(userDataFromFirestore['status'] ?? 'published'),
+        privs: Value(userDataFromFirestore['privs'] ?? '*'),
+        accountKeys: Value(defaultAccountKeysJson),
+      );
+
+      final dbUserId = await _database.insertUser(localUser);
+
+      // Create session
+      await _database.createSession(
+        SessionsCompanion.insert(
+          userId: dbUserId,
+          token: Value(token),
+          isActive: const Value(true),
+        ),
+      );
       
-      // Return success response matching PHP structure
+      // Return success response matching PHP structure with login data
       return {
         'success': true,
         'code': 200,
         'message': 'Registered Successfully',
         'data': {
-          'id': user.uid,
+          'id': userId,
+          'token': token,
           'username': number,
-          'name': businessName,
-          'account_keys': '',
-          'industry_type': industryType ?? '',
-          'business_type': businessType ?? 'Retailer',
-          'address': '',
-          'country_code': countryCode,
-          'mobile': mobile,
-          'currency': 'Rs ',
-          'gst': '',
-          'vat': '',
-          'negative': 'off',
-          'tax': 'off',
-          'secondary_units': 'off',
-          'variants': 'off',
-          'barcode': 'off',
-          'logo': 'https://shop-manager.roznamchaapp.com/uploads/images/default-logo.png',
-          'salesman_commission': 'off',
-          'agent_commission': 'off',
-          'print_header_note': '',
-          'print_footer_note': '',
-          'status': 'published',
+          'addedBy': number,
+          'name': userDataFromFirestore['business_name'] ?? businessName,
+          'account_keys': defaultAccountKeysJson,
+          'industry_type': userDataFromFirestore['industry_type'] ?? industryType ?? '',
+          'business_type': userDataFromFirestore['business_type'] ?? businessType ?? 'Retailer',
+          'address': userDataFromFirestore['address'] ?? '',
+          'email': userDataFromFirestore['email'] ?? email ?? '',
+          'country_code': userDataFromFirestore['country_code'] ?? countryCode,
+          'mobile': userDataFromFirestore['mobile'] ?? mobile,
+          'number': number,
+          'currency': userDataFromFirestore['currency'] ?? 'Rs ',
+          'gst': userDataFromFirestore['gst'] ?? '',
+          'vat': userDataFromFirestore['vat'] ?? '',
+          'negative': userDataFromFirestore['negative'] ?? 'off',
+          'tax': userDataFromFirestore['tax'] ?? 'off',
+          'secondary_units': userDataFromFirestore['secondary_units'] ?? 'off',
+          'variants': userDataFromFirestore['variants'] ?? 'off',
+          'barcode': userDataFromFirestore['barcode'] ?? 'off',
+          'logo': logoUrl,
+          'salesman_commission': userDataFromFirestore['salesman_commission'] ?? 'off',
+          'agent_commission': userDataFromFirestore['agent_commission'] ?? 'off',
+          'print_header_note': userDataFromFirestore['print_header_note'] ?? '',
+          'print_footer_note': userDataFromFirestore['print_footer_note'] ?? '',
+          'status': userDataFromFirestore['status'] ?? 'published',
           'privs': '*',
         },
       };
@@ -303,6 +427,107 @@ class AuthService {
   int _getWeekNumber(DateTime date) {
     final dayOfYear = date.difference(DateTime(date.year, 1, 1)).inDays + 1;
     return ((dayOfYear - date.weekday + 10) / 7).floor();
+  }
+
+  /// Default accounts list matching PHP config.php
+  static const List<Map<String, String>> _defaultAccounts = [
+    {'account_key': 'cashonhand', 'account_head': 'Cash', 'account_type': 'Cash'},
+    {'account_key': 'expense', 'account_head': 'Expense', 'account_type': 'Expense'},
+    {'account_key': 'rnp', 'account_head': 'Accounts Receivable and Payable', 'account_type': 'Assets'},
+    {'account_key': 'sales', 'account_head': 'Sales', 'account_type': 'Income'},
+    {'account_key': 'tax', 'account_head': 'All Taxes', 'account_type': 'Liabilities'},
+    {'account_key': 'purchases', 'account_head': 'Purchases', 'account_type': 'Cost of Sale'},
+    {'account_key': 'purchasediscount', 'account_head': 'Purchase Discount', 'account_type': 'Income'},
+    {'account_key': 'salediscount', 'account_head': 'Sale Discount', 'account_type': 'Expense'},
+    {'account_key': 'profitandlose', 'account_head': 'Profit and Lose', 'account_type': 'Income'},
+    {'account_key': 'capital', 'account_head': 'Capital', 'account_type': 'Equity'},
+    {'account_key': 'inventory', 'account_head': 'Inventory', 'account_type': 'Assets'},
+  ];
+
+  /// Create default accounts in Firestore (chartofaccount collection)
+  /// Returns a map of account_key -> account_document_id
+  Future<Map<String, String>> _createDefaultAccounts(String ownerMobile) async {
+    final timestamp = FieldValue.serverTimestamp();
+    final accountIds = <String, String>{};
+
+    GeneralFunctions.debugPrintSuccess(
+      checkpoint: 20,
+      message: 'Starting to create default accounts for: $ownerMobile',
+      data: {'account_count': _defaultAccounts.length},
+    );
+
+    for (final account in _defaultAccounts) {
+      try {
+        final accountData = {
+          'owner_mobile': ownerMobile,
+          'timestamp': timestamp,
+          'added_by': 'System',
+          'status': 'Published',
+          'last_updated': timestamp,
+          'account_head': account['account_head'],
+          'account_type': account['account_type'],
+          'balance': 0,
+          'balance_type': 'cr',
+          'old_balance': 0,
+          'old_balance_type': 'cr',
+          'last_update_date': timestamp,
+          'notes': '',
+        };
+
+        GeneralFunctions.debugPrintSuccess(
+          checkpoint: 21,
+          message: 'Creating account: ${account['account_head']}',
+          data: accountData,
+        );
+
+        final docRef = await _firestore.collection('chartofaccount').add(accountData);
+        accountIds[account['account_key']!] = docRef.id;
+
+        GeneralFunctions.debugPrintSuccess(
+          checkpoint: 22,
+          message: 'Successfully created account: ${account['account_head']}',
+          data: {'account_key': account['account_key'], 'doc_id': docRef.id},
+        );
+      } catch (e, stackTrace) {
+        GeneralFunctions.debugPrintError(
+          checkpoint: 23,
+          message: 'Failed to create account: ${account['account_head']}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        // Continue with other accounts even if one fails
+      }
+    }
+
+    GeneralFunctions.debugPrintSuccess(
+      checkpoint: 24,
+      message: 'Finished creating default accounts',
+      data: {'created_count': accountIds.length, 'total_count': _defaultAccounts.length},
+    );
+
+    return accountIds;
+  }
+
+  /// Create walk-in contact in Firestore (contacts collection)
+  Future<void> _createWalkInContact(String ownerMobile) async {
+    final timestamp = FieldValue.serverTimestamp();
+    
+    final contactData = {
+      'owner_mobile': ownerMobile,
+      'timestamp': timestamp,
+      'added_by': 'System',
+      'status': 'Published',
+      'last_updated': timestamp,
+      'name': 'Walk-in Customer / Supplier',
+      'country_code': '+',
+      'mobile': '0000',
+      'number': '+0000', // Using '+0000' to match existing database format (PHP: '+' + '0000')
+      'type': 'customer',
+      'balance': '0',
+      'balance_status': 'payable',
+    };
+
+    await _firestore.collection('contacts').add(contactData);
   }
   
   /// Check if a phone number (number field) already exists

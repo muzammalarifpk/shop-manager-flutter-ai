@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../config/app_constants.dart';
 import '../../utils/general_functions.dart';
 import '../../widgets/glassy_theme_widgets.dart';
+import '../../widgets/custom_notifications.dart';
+import '../dashboard/dashboard_screen.dart';
 import 'auth_service.dart';
 
 /// Registration screen with validation and Firebase integration.
@@ -93,18 +95,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       if (result['success'] == true) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Registered Successfully'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
+        // Show success notification
+        GlassySuccessNotification.show(
+          context,
+          message: result['message'] ?? 'Registered Successfully',
+          icon: Icons.person_add_rounded,
+          color: Colors.blue,
         );
 
-        // Navigate to login or dashboard
-        // For now, just pop back to login
-        Navigator.of(context).pop();
+        // User is automatically logged in after registration (matching PHP behavior)
+        GeneralFunctions.debugPrintSuccess(
+          checkpoint: 2,
+          message: 'Registration and auto-login successful',
+          data: result['data'],
+        );
+
+        // Navigate to dashboard and clear navigation stack after a short delay
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const DashboardScreen()),
+              (route) => false,
+            );
+          }
+        });
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Registration failed';
