@@ -976,8 +976,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           _DrawerMenuItem(
                             icon: Icons.account_balance,
                             title: 'Banks and Accounts',
-                            onTap: () =>
-                                _showComingSoon(context, 'Banks and Accounts'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const BanksAccountsScreen(),
+                                ),
+                              );
+                            },
                           ),
                           _DrawerMenuItem(
                             icon: Icons.inventory_2,
