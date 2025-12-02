@@ -57,22 +57,32 @@ class ChartOfAccountService {
         throw Exception('User not logged in');
       }
 
-      final account = ChartOfAccount(
-        id: '', // Will be set by Firestore
-        accountHead: accountHead,
-        accountType: accountType,
-        balance: balance,
-        balanceType: balanceType,
-        status: status,
-        notes: notes,
-        ownerMobile: user.number,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      final now = DateTime.now();
+      final timestamp = now.millisecondsSinceEpoch ~/ 1000; // Unix timestamp
+
+      // Create account data matching PHP structure
+      final accountData = {
+        'account_head': accountHead,
+        'account_type': accountType,
+        'balance': balance,
+        'balance_type': balanceType.toLowerCase(),
+        'old_balance': balance,
+        'old_balance_type': balanceType.toLowerCase(),
+        'status': status,
+        'notes': notes ?? '',
+        'owner_mobile': user.number,
+        'added_by': user.businessName, // User's business name
+        'timestamp': timestamp,
+        'last_updated': now.toUtc().toIso8601String(),
+        'last_update_date': now.toUtc().toIso8601String(),
+        'created_at': now.toIso8601String(),
+        'updated_at': now.toIso8601String(),
+        // No account_key for user-created accounts (only system accounts have this)
+      };
 
       final docRef = await _firestore
           .collection('chartofaccount')
-          .add(account.toFirestore());
+          .add(accountData);
 
       return docRef.id;
     } catch (e) {
@@ -93,11 +103,15 @@ class ChartOfAccountService {
         throw Exception('User not logged in');
       }
 
+      final now = DateTime.now();
+
       await _firestore.collection('chartofaccount').doc(id).update({
         'account_head': accountHead,
         'status': status,
-        'notes': notes,
-        'updated_at': DateTime.now().toIso8601String(),
+        'notes': notes ?? '',
+        'updated_at': now.toIso8601String(),
+        'last_updated': now.toUtc().toIso8601String(),
+        'last_update_date': now.toUtc().toIso8601String(),
       });
     } catch (e) {
       throw Exception('Failed to update account: $e');
@@ -112,10 +126,14 @@ class ChartOfAccountService {
         throw Exception('User not logged in');
       }
 
+      final now = DateTime.now();
+
       // Update status to 'delete' instead of actually deleting
       await _firestore.collection('chartofaccount').doc(id).update({
         'status': 'delete',
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': now.toIso8601String(),
+        'last_updated': now.toUtc().toIso8601String(),
+        'last_update_date': now.toUtc().toIso8601String(),
       });
     } catch (e) {
       throw Exception('Failed to delete account: $e');
