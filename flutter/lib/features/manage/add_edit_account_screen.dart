@@ -351,8 +351,8 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                                         gradient: _balanceType == 'Debit'
                                             ? LinearGradient(
                                                 colors: [
-                                                  Colors.green.shade400,
-                                                  Colors.green.shade600,
+                                                  Colors.red.shade400,
+                                                  Colors.red.shade600,
                                                 ],
                                               )
                                             : LinearGradient(
@@ -367,7 +367,7 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                                         ),
                                         border: Border.all(
                                           color: _balanceType == 'Debit'
-                                              ? Colors.green.shade300
+                                              ? Colors.red.shade300
                                               : Colors.white.withValues(alpha: 0.3),
                                           width: _balanceType == 'Debit' ? 2 : 1,
                                         ),
@@ -401,8 +401,8 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                                         gradient: _balanceType == 'Credit'
                                             ? LinearGradient(
                                                 colors: [
-                                                  Colors.red.shade400,
-                                                  Colors.red.shade600,
+                                                  Colors.green.shade400,
+                                                  Colors.green.shade600,
                                                 ],
                                               )
                                             : LinearGradient(
@@ -417,7 +417,7 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                                         ),
                                         border: Border.all(
                                           color: _balanceType == 'Credit'
-                                              ? Colors.red.shade300
+                                              ? Colors.green.shade300
                                               : Colors.white.withValues(alpha: 0.3),
                                           width: _balanceType == 'Credit' ? 2 : 1,
                                         ),

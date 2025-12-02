@@ -228,8 +228,8 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
 
   Widget _buildAccountCard(BuildContext context, ChartOfAccount account) {
     final isDebit = account.balanceType.toLowerCase() == 'debit';
-    final balanceColor = isDebit ? Colors.green : Colors.red;
-    final balanceColorLight = isDebit ? Colors.greenAccent : Colors.redAccent;
+    final balanceColor = isDebit ? Colors.red : Colors.green;
+    final balanceColorLight = isDebit ? Colors.redAccent : Colors.greenAccent;
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
