@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image/image.dart' as img;
@@ -29,7 +31,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   User? _currentUser;
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isUploadingLogo = false;
   File? _selectedLogoImage;
+  String? _logoBase64;
 
   // Controllers for form fields
   final _businessNameController = TextEditingController();
@@ -173,12 +177,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Resize to exactly 256x256
           final resizedFile = await _resizeImage(croppedFile.path, 256, 256);
           
-          // Save to app directory
+          // Save to app directory first (for immediate display)
           final savedFile = await _saveLogoToApp(resizedFile);
           
           setState(() {
             _selectedLogoImage = savedFile;
+            _isUploadingLogo = true;
           });
+          
+          // Convert to base64 and save to Firestore
+          try {
+            final logoBase64 = await _convertImageToBase64(savedFile);
+            setState(() {
+              _logoBase64 = logoBase64;
+              _isUploadingLogo = false;
+            });
+            
+            // Update user profile with base64 logo (only logo, not all fields)
+            await _authService.updateProfile(
+              businessName: _businessNameController.text.trim(),
+              address: _addressController.text.trim(),
+              currency: _currencyController.text.trim(),
+              logoPath: logoBase64,
+            );
+            
+            if (mounted) {
+              GlassySuccessNotification.show(
+                context,
+                message: 'Logo saved successfully',
+                icon: Icons.check_circle,
+              );
+            }
+          } catch (e) {
+            setState(() {
+              _isUploadingLogo = false;
+            });
+            if (mounted) {
+              GlassyErrorNotification.show(
+                context,
+                message: 'Failed to save logo: ${e.toString()}',
+              );
+            }
+          }
         }
       }
     } on PlatformException catch (e) {
@@ -254,8 +294,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return savedFile;
   }
 
+  Future<String> _convertImageToBase64(File imageFile) async {
+    // Read the image file as bytes
+    final bytes = await imageFile.readAsBytes();
+    
+    // Convert to base64
+    final base64String = base64Encode(bytes);
+    
+    // Add data URI prefix for PNG images
+    return 'data:image/png;base64,$base64String';
+  }
+
   Future<void> _loadSavedLogo() async {
     try {
+      // First, try to load from local storage
       final appDir = await getApplicationDocumentsDirectory();
       final logoDir = Directory(path.join(appDir.path, 'logos'));
       
@@ -269,11 +321,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
             setState(() {
               _selectedLogoImage = logoFile;
             });
+            return;
           }
         }
       }
+      
+      // If not in local storage, try to load from base64
+      if (_logoBase64 != null && _logoBase64!.isNotEmpty && _logoBase64!.startsWith('data:image')) {
+        await _loadLogoFromBase64(_logoBase64!);
+      }
     } catch (e) {
       // Silently fail - no saved logo is fine
+    }
+  }
+
+  Future<void> _loadLogoFromBase64(String base64String) async {
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) return;
+      
+      // Remove data URI prefix if present
+      String base64Data = base64String;
+      if (base64Data.contains(',')) {
+        base64Data = base64Data.split(',')[1];
+      }
+      
+      // Decode base64 to bytes
+      final bytes = base64Decode(base64Data);
+      
+      // Save to local storage
+      final appDir = await getApplicationDocumentsDirectory();
+      final logoDir = Directory(path.join(appDir.path, 'logos'));
+      
+      if (!await logoDir.exists()) {
+        await logoDir.create(recursive: true);
+      }
+      
+      final fileName = 'logo_${user.number.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.png';
+      final logoFile = File(path.join(logoDir.path, fileName));
+      
+      await logoFile.writeAsBytes(bytes);
+      
+      setState(() {
+        _selectedLogoImage = logoFile;
+      });
+    } catch (e) {
+      // Silently fail - logo loading is optional
     }
   }
 
@@ -329,7 +422,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         printHeader: _printHeader,
         printUrduInvoice: _printUrduInvoice,
         smsNotification: _smsNotification,
-        logoPath: null, // TODO: Upload logo to Firebase Storage and get URL
+        logoPath: _logoBase64, // Use the base64 encoded logo
       );
 
       if (mounted) {
@@ -727,44 +820,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ),
                                       child: _selectedLogoImage != null
-                                          ? Column(
+                                          ? Stack(
+                                              alignment: Alignment.center,
                                               children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  child: Image.file(
-                                                    _selectedLogoImage!,
-                                                    height: 256,
-                                                    width: 256,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 12),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
+                                                Column(
                                                   children: [
-                                                    Icon(
-                                                      Icons.edit,
-                                                      color: Colors.white
-                                                          .withValues(
-                                                            alpha: 0.7,
-                                                          ),
-                                                      size: 18,
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      'Tap to change logo',
-                                                      style: TextStyle(
-                                                        color: Colors.white
-                                                            .withValues(
-                                                              alpha: 0.7,
-                                                            ),
-                                                        fontSize: 14,
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(12),
+                                                      child: Image.file(
+                                                        _selectedLogoImage!,
+                                                        height: 256,
+                                                        width: 256,
+                                                        fit: BoxFit.cover,
                                                       ),
+                                                    ),
+                                                    const SizedBox(height: 12),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.center,
+                                                      children: [
+                                                        Icon(
+                                                          _isUploadingLogo
+                                                              ? Icons.cloud_upload
+                                                              : Icons.edit,
+                                                          color: Colors.white
+                                                              .withValues(
+                                                                alpha: 0.7,
+                                                              ),
+                                                          size: 18,
+                                                        ),
+                                                        const SizedBox(width: 8),
+                                                        Text(
+                                                          _isUploadingLogo
+                                                              ? 'Uploading to cloud...'
+                                                              : 'Tap to change logo',
+                                                          style: TextStyle(
+                                                            color: Colors.white
+                                                                .withValues(
+                                                                  alpha: 0.7,
+                                                                ),
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ],
                                                 ),
+                                                if (_isUploadingLogo)
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black.withValues(alpha: 0.5),
+                                                      borderRadius: BorderRadius.circular(12),
+                                                    ),
+                                                    child: const Center(
+                                                      child: CircularProgressIndicator(
+                                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                      ),
+                                                    ),
+                                                  ),
                                               ],
                                             )
                                           : Column(
