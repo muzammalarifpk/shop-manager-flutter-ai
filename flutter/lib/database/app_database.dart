@@ -60,7 +60,15 @@ class Sessions extends Table {
 
 @DriftDatabase(tables: [Users, Sessions])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  // Singleton pattern to ensure only one database instance
+  static AppDatabase? _instance;
+  
+  AppDatabase._internal() : super(_openConnection());
+  
+  factory AppDatabase() {
+    _instance ??= AppDatabase._internal();
+    return _instance!;
+  }
 
   @override
   int get schemaVersion => 3;
