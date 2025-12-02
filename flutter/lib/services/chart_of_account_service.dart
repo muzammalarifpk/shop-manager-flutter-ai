@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/chart_of_account.dart';
 import '../features/auth/auth_service.dart';
+import 'journal_service.dart';
 
 class ChartOfAccountService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthService _authService = AuthService();
+  final JournalService _journalService = JournalService();
 
   // Get all accounts for current user
   Stream<List<ChartOfAccount>> getAccounts() async* {
@@ -84,7 +87,59 @@ class ChartOfAccountService {
           .collection('chartofaccount')
           .add(accountData);
 
-      return docRef.id;
+      final newAccountId = docRef.id;
+
+      // If opening balance is not zero, create journal and ledger entries
+      if (balance != 0) {
+        // Get Capital account ID from user's default accounts
+        final userDoc = await _firestore.collection('users').doc(user.number).get();
+        final userData = userDoc.data();
+        
+        String? capitalAccountId;
+        if (userData != null && userData['default_account_keys'] != null) {
+          try {
+            final accountKeys = jsonDecode(userData['default_account_keys']) as Map<String, dynamic>;
+            capitalAccountId = accountKeys['capital'];
+          } catch (e) {
+            // If parsing fails, try to find capital account manually
+            final capitalSnapshot = await _firestore
+                .collection('chartofaccount')
+                .where('owner_mobile', isEqualTo: user.number)
+                .where('account_key', isEqualTo: 'capital')
+                .limit(1)
+                .get();
+            
+            if (capitalSnapshot.docs.isNotEmpty) {
+              capitalAccountId = capitalSnapshot.docs.first.id;
+            }
+          }
+        }
+
+        if (capitalAccountId != null) {
+          // Create journal entry based on balance type
+          List<Map<String, dynamic>> creditArray;
+          List<Map<String, dynamic>> debitArray;
+
+          if (balanceType.toLowerCase() == 'debit') {
+            // Debit the new account, Credit the capital account
+            debitArray = [{'account': newAccountId, 'amount': balance}];
+            creditArray = [{'account': capitalAccountId, 'amount': balance}];
+          } else {
+            // Credit the new account, Debit the capital account
+            creditArray = [{'account': newAccountId, 'amount': balance}];
+            debitArray = [{'account': capitalAccountId, 'amount': balance}];
+          }
+
+          await _journalService.createJournalEntry(
+            creditArray: creditArray,
+            debitArray: debitArray,
+            entryType: 'New Account with beginning balance.',
+            entryLink: 'accountid:$newAccountId',
+          );
+        }
+      }
+
+      return newAccountId;
     } catch (e) {
       throw Exception('Failed to add account: $e');
     }

@@ -54,7 +54,7 @@ class ChartOfAccount {
   }
 
   Map<String, dynamic> toFirestore() {
-    return {
+    final data = {
       'account_head': accountHead,
       'account_type': accountType,
       'balance': balance,
@@ -62,11 +62,19 @@ class ChartOfAccount {
       'status': status,
       'notes': notes,
       'owner_mobile': ownerMobile,
-      'account_key': accountKey,
-      'added_by': addedBy,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
+    
+    // Only include optional fields if they're not null
+    if (accountKey != null) {
+      data['account_key'] = accountKey;
+    }
+    if (addedBy != null) {
+      data['added_by'] = addedBy;
+    }
+    
+    return data;
   }
 
   ChartOfAccount copyWith({
@@ -98,5 +106,7 @@ class ChartOfAccount {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+}
+
 }
 
