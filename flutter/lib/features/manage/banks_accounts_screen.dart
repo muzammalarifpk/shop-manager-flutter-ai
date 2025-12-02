@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../models/chart_of_account.dart';
 import '../../services/chart_of_account_service.dart';
 import '../../widgets/custom_notifications.dart';
@@ -226,6 +227,11 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
     );
   }
 
+  String _formatCurrency(double amount) {
+    final formatter = NumberFormat('#,##0.00', 'en_US');
+    return formatter.format(amount);
+  }
+
   Widget _buildAccountCard(BuildContext context, ChartOfAccount account) {
     final isDebit = account.balanceType.toLowerCase() == 'debit';
     final balanceColor = isDebit ? Colors.red : Colors.green;
@@ -369,7 +375,7 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          account.balance.toStringAsFixed(2),
+                          _formatCurrency(account.balance),
                           style: TextStyle(
                             color: balanceColorLight,
                             fontSize: 28,
