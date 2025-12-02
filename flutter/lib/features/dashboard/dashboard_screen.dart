@@ -6,6 +6,7 @@ import '../auth/auth_service.dart';
 import '../auth/login_screen.dart';
 import '../settings/theme_picker_screen.dart';
 import '../settings/profile_screen.dart';
+import '../manage/banks_accounts_screen.dart';
 import '../../database/app_database.dart';
 
 /// Dashboard screen showing user information and main navigation
