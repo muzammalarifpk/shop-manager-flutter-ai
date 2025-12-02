@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import '../../models/chart_of_account.dart';
 import '../../services/chart_of_account_service.dart';
 import '../../widgets/glassy_theme_widgets.dart';
@@ -24,6 +26,7 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
   final _accountHeadController = TextEditingController();
   final _balanceController = TextEditingController();
   final _notesController = TextEditingController();
+  final _balanceFocusNode = FocusNode();
   
   String _accountType = 'Cash';
   String _balanceType = 'Debit';
@@ -54,8 +57,22 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
     if (widget.account != null) {
       _loadAccountData();
     } else {
-      _balanceController.text = '0';
+      _balanceController.text = '0.00';
     }
+    
+    // Listen to focus changes on balance field
+    _balanceFocusNode.addListener(() {
+      if (_balanceFocusNode.hasFocus) {
+        // Clear field if it's 0 or 0.00
+        final value = _balanceController.text.replaceAll(',', '');
+        if (value == '0' || value == '0.00' || value.isEmpty) {
+          _balanceController.clear();
+        }
+      } else {
+        // Format when focus is lost
+        _formatBalance();
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -107,11 +124,26 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
     _status = account.status;
   }
 
+  void _formatBalance() {
+    final text = _balanceController.text.replaceAll(',', '');
+    if (text.isEmpty) {
+      _balanceController.text = '0.00';
+      return;
+    }
+    
+    final value = double.tryParse(text);
+    if (value != null) {
+      final formatter = NumberFormat('#,##0.00', 'en_US');
+      _balanceController.text = formatter.format(value);
+    }
+  }
+
   @override
   void dispose() {
     _accountHeadController.dispose();
     _balanceController.dispose();
     _notesController.dispose();
+    _balanceFocusNode.dispose();
     super.dispose();
   }
 
@@ -125,7 +157,9 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
     });
 
     try {
-      final balance = double.tryParse(_balanceController.text) ?? 0.0;
+      // Remove commas before parsing
+      final cleanText = _balanceController.text.replaceAll(',', '');
+      final balance = double.tryParse(cleanText) ?? 0.0;
 
       if (widget.account == null) {
         // Add new account
@@ -294,10 +328,15 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                             GlassyTheme.glassyTextField(
                               TextFormField(
                                 controller: _balanceController,
+                                focusNode: _balanceFocusNode,
                                 style: const TextStyle(color: Colors.white),
                                 keyboardType: const TextInputType.numberWithOptions(
                                   decimal: true,
                                 ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                                  _CurrencyInputFormatter(),
+                                ],
                                 decoration: GlassyTheme.glassyInputDecoration(
                                   hintText: '0.00',
                                   prefixIcon: Padding(
@@ -319,7 +358,8 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                                   if (value == null || value.trim().isEmpty) {
                                     return 'Balance is required';
                                   }
-                                  if (double.tryParse(value) == null) {
+                                  final cleanValue = value.replaceAll(',', '');
+                                  if (double.tryParse(cleanValue) == null) {
                                     return 'Enter valid number';
                                   }
                                   return null;
@@ -584,6 +624,62 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Currency input formatter for real-time formatting
+class _CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Remove all commas first
+    String text = newValue.text.replaceAll(',', '');
+
+    // Don't allow multiple decimal points
+    if ('.'.allMatches(text).length > 1) {
+      return oldValue;
+    }
+
+    // Split by decimal point
+    final parts = text.split('.');
+    
+    // Format the integer part with commas
+    String formattedInteger = parts[0];
+    if (formattedInteger.isNotEmpty) {
+      // Add commas to integer part
+      final intValue = int.tryParse(formattedInteger);
+      if (intValue != null) {
+        final formatter = NumberFormat('#,###', 'en_US');
+        formattedInteger = formatter.format(intValue);
+      }
+    }
+
+    // Reconstruct the number
+    String formattedText = formattedInteger;
+    if (parts.length > 1) {
+      // Limit decimal places to 2
+      String decimalPart = parts[1];
+      if (decimalPart.length > 2) {
+        decimalPart = decimalPart.substring(0, 2);
+      }
+      formattedText = '$formattedInteger.$decimalPart';
+    } else if (text.endsWith('.')) {
+      formattedText = '$formattedInteger.';
+    }
+
+    // Calculate new cursor position
+    int cursorPosition = formattedText.length;
+    
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: cursorPosition),
     );
   }
 }
