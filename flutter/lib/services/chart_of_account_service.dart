@@ -17,11 +17,15 @@ class ChartOfAccountService {
     yield* _firestore
         .collection('chartofaccount')
         .where('owner_mobile', isEqualTo: user.number)
-        .orderBy('account_head')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChartOfAccount.fromFirestore(doc.data(), doc.id))
-            .toList());
+        .map((snapshot) {
+          final accounts = snapshot.docs
+              .map((doc) => ChartOfAccount.fromFirestore(doc.data(), doc.id))
+              .toList();
+          // Sort in memory instead of using Firestore orderBy
+          accounts.sort((a, b) => a.accountHead.compareTo(b.accountHead));
+          return accounts;
+        });
   }
 
   // Get single account by ID
