@@ -261,9 +261,9 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
 
                 // Account Type (only for new accounts)
                 if (!isEdit) ...[
-                  GlassyTheme.fieldLabel('Account Type', required: true),
                   GlassyDropdownField<String>(
-                    label: '',
+                    label: 'Account Type',
+                    required: true,
                     selectedValue: _accountType,
                     items: _accountTypes
                         .map((type) => GlassyDropdownItem(
@@ -449,9 +449,9 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                 ],
 
                 // Status
-                GlassyTheme.fieldLabel('Status', required: true),
                 GlassyDropdownField<String>(
-                  label: '',
+                  label: 'Status',
+                  required: true,
                   selectedValue: _status,
                   items: _statusOptions
                       .map((status) => GlassyDropdownItem(
