@@ -180,18 +180,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Save to app directory first (for immediate display)
           final savedFile = await _saveLogoToApp(resizedFile);
           
+          // Update UI immediately with the new logo
           setState(() {
             _selectedLogoImage = savedFile;
             _isUploadingLogo = true;
           });
           
-          // Convert to base64 and save to Firestore
+          // Convert to base64 and save to Firestore in background
           try {
             final logoBase64 = await _convertImageToBase64(savedFile);
-            setState(() {
-              _logoBase64 = logoBase64;
-              _isUploadingLogo = false;
-            });
             
             // Update user profile with base64 logo (only logo, not all fields)
             await _authService.updateProfile(
@@ -200,6 +197,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               currency: _currencyController.text.trim(),
               logoPath: logoBase64,
             );
+            
+            setState(() {
+              _logoBase64 = logoBase64;
+              _isUploadingLogo = false;
+            });
             
             if (mounted) {
               GlassySuccessNotification.show(

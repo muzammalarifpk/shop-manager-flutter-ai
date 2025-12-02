@@ -964,20 +964,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // Header with user info
                   _buildDrawerHeader(),
                   const Divider(color: Colors.white24, height: 1),
+                  // Main Menu - Icon-only quick actions
+                  _buildMainMenuIcons(),
+                  const Divider(color: Colors.white24, height: 1, thickness: 1),
                   // Menu items
                   Expanded(
                     child: ListView(
                       padding: EdgeInsets.zero,
                       children: [
-                        _buildDrawerSection('Main Menu', [
-                          _DrawerMenuItem(
-                            icon: Icons.dashboard,
-                            title: 'Dashboard',
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ]),
                         _buildDrawerSection('Manage', [
                           _DrawerMenuItem(
                             icon: Icons.account_balance,
@@ -1398,6 +1392,116 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildMainMenuIcons() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildMainMenuIcon(
+            icon: Icons.dashboard_rounded,
+            label: 'Dashboard',
+            gradient: [Colors.blue, Colors.cyan],
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          const SizedBox(width: 12),
+          _buildMainMenuIcon(
+            icon: Icons.person_rounded,
+            label: 'Profile',
+            gradient: [Colors.purple, Colors.pink],
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 12),
+          _buildMainMenuIcon(
+            icon: Icons.logout_rounded,
+            label: 'Logout',
+            gradient: [Colors.red, Colors.orange],
+            onTap: () {
+              Navigator.pop(context);
+              _handleLogout();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainMenuIcon({
+    required IconData icon,
+    required String label,
+    required List<Color> gradient,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: gradient.map((c) => c.withValues(alpha: 0.2)).toList(),
+                ),
+                border: Border.all(
+                  color: gradient.first.withValues(alpha: 0.4),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: gradient,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: gradient.first.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 16),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDrawerSection(String title, List<_DrawerMenuItem> items) {
     final isExpanded = _expandedSections[title] ?? false;
 
@@ -1414,8 +1518,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              margin: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 gradient: isExpanded
                     ? LinearGradient(
@@ -1454,9 +1558,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -1482,10 +1586,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: isExpanded
                           ? Colors.white
                           : Colors.white.withValues(alpha: 0.8),
-                      size: 22,
+                      size: 18,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       title,
