@@ -4,6 +4,8 @@ import '../../models/chart_of_account.dart';
 import '../../services/chart_of_account_service.dart';
 import '../../widgets/glassy_theme_widgets.dart';
 import '../../widgets/custom_notifications.dart';
+import '../auth/auth_service.dart';
+import '../../database/app_database.dart';
 
 class AddEditAccountScreen extends StatefulWidget {
   final ChartOfAccount? account;
@@ -17,6 +19,7 @@ class AddEditAccountScreen extends StatefulWidget {
 class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
   final _formKey = GlobalKey<FormState>();
   final _accountService = ChartOfAccountService();
+  final _authService = AuthService();
   
   final _accountHeadController = TextEditingController();
   final _balanceController = TextEditingController();
@@ -26,6 +29,8 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
   String _balanceType = 'Debit';
   String _status = 'published';
   bool _isSaving = false;
+  String _currencySymbol = '\$'; // Default
+  User? _currentUser;
 
   // Account types from PHP config
   final List<String> _accountTypes = [
@@ -45,10 +50,50 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     if (widget.account != null) {
       _loadAccountData();
     } else {
       _balanceController.text = '0';
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    final user = await _authService.getCurrentUser();
+    if (user != null) {
+      setState(() {
+        _currentUser = user;
+        _currencySymbol = _getCurrencySymbol(user.currency ?? 'USD');
+      });
+    }
+  }
+
+  String _getCurrencySymbol(String currency) {
+    switch (currency.toUpperCase()) {
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'INR':
+        return '₹';
+      case 'PKR':
+        return 'Rs';
+      case 'JPY':
+        return '¥';
+      case 'CNY':
+        return '¥';
+      case 'AUD':
+        return 'A\$';
+      case 'CAD':
+        return 'C\$';
+      case 'AED':
+        return 'د.إ';
+      case 'SAR':
+        return 'ر.س';
+      default:
+        return currency;
     }
   }
 
@@ -218,7 +263,7 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                 if (!isEdit) ...[
                   GlassyTheme.fieldLabel('Account Type', required: true),
                   GlassyDropdownField<String>(
-                    label: 'Account Type',
+                    label: '',
                     selectedValue: _accountType,
                     items: _accountTypes
                         .map((type) => GlassyDropdownItem(
@@ -255,9 +300,19 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                                 ),
                                 decoration: GlassyTheme.glassyInputDecoration(
                                   hintText: '0.00',
-                                  prefixIcon: const Icon(
-                                    Icons.attach_money,
-                                    color: Colors.white70,
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.only(left: 16, right: 8),
+                                    child: Center(
+                                      widthFactor: 0.0,
+                                      child: Text(
+                                        _currencySymbol,
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 validator: (value) {
@@ -396,7 +451,7 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                 // Status
                 GlassyTheme.fieldLabel('Status', required: true),
                 GlassyDropdownField<String>(
-                  label: 'Status',
+                  label: '',
                   selectedValue: _status,
                   items: _statusOptions
                       .map((status) => GlassyDropdownItem(
