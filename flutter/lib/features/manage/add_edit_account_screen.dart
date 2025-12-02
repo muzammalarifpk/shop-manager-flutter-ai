@@ -280,21 +280,110 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             GlassyTheme.fieldLabel('Type', required: true),
-                            GlassyDropdownField<String>(
-                              label: 'Balance Type',
-                              selectedValue: _balanceType,
-                              items: _balanceTypes
-                                  .map((type) => GlassyDropdownItem(
-                                        label: type,
-                                        value: type,
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _balanceType = value!;
-                                });
-                              },
-                              hintText: 'Select type',
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _balanceType = 'Debit';
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      decoration: BoxDecoration(
+                                        gradient: _balanceType == 'Debit'
+                                            ? LinearGradient(
+                                                colors: [
+                                                  Colors.green.shade400,
+                                                  Colors.green.shade600,
+                                                ],
+                                              )
+                                            : LinearGradient(
+                                                colors: [
+                                                  Colors.white.withValues(alpha: 0.1),
+                                                  Colors.white.withValues(alpha: 0.05),
+                                                ],
+                                              ),
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(12),
+                                          bottomLeft: Radius.circular(12),
+                                        ),
+                                        border: Border.all(
+                                          color: _balanceType == 'Debit'
+                                              ? Colors.green.shade300
+                                              : Colors.white.withValues(alpha: 0.3),
+                                          width: _balanceType == 'Debit' ? 2 : 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'DR',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: _balanceType == 'Debit'
+                                              ? Colors.white
+                                              : Colors.white.withValues(alpha: 0.7),
+                                          fontSize: 14,
+                                          fontWeight: _balanceType == 'Debit'
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _balanceType = 'Credit';
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      decoration: BoxDecoration(
+                                        gradient: _balanceType == 'Credit'
+                                            ? LinearGradient(
+                                                colors: [
+                                                  Colors.red.shade400,
+                                                  Colors.red.shade600,
+                                                ],
+                                              )
+                                            : LinearGradient(
+                                                colors: [
+                                                  Colors.white.withValues(alpha: 0.1),
+                                                  Colors.white.withValues(alpha: 0.05),
+                                                ],
+                                              ),
+                                        borderRadius: const BorderRadius.only(
+                                          topRight: Radius.circular(12),
+                                          bottomRight: Radius.circular(12),
+                                        ),
+                                        border: Border.all(
+                                          color: _balanceType == 'Credit'
+                                              ? Colors.red.shade300
+                                              : Colors.white.withValues(alpha: 0.3),
+                                          width: _balanceType == 'Credit' ? 2 : 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'CR',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: _balanceType == 'Credit'
+                                              ? Colors.white
+                                              : Colors.white.withValues(alpha: 0.7),
+                                          fontSize: 14,
+                                          fontWeight: _balanceType == 'Credit'
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

@@ -228,6 +228,8 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
 
   Widget _buildAccountCard(BuildContext context, ChartOfAccount account) {
     final isDebit = account.balanceType.toLowerCase() == 'debit';
+    final balanceColor = isDebit ? Colors.green : Colors.red;
+    final balanceColorLight = isDebit ? Colors.greenAccent : Colors.redAccent;
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -275,14 +277,13 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            isDebit ? Colors.green.shade400 : Colors.red.shade400,
-                            isDebit ? Colors.green.shade700 : Colors.red.shade700,
+                            balanceColor.shade400,
+                            balanceColor.shade700,
                           ],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: (isDebit ? Colors.green : Colors.red)
-                                .withValues(alpha: 0.4),
+                            color: balanceColor.withValues(alpha: 0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -370,7 +371,7 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                         Text(
                           account.balance.toStringAsFixed(2),
                           style: TextStyle(
-                            color: isDebit ? Colors.greenAccent : Colors.redAccent,
+                            color: balanceColorLight,
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
@@ -386,23 +387,20 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            (isDebit ? Colors.green : Colors.red)
-                                .withValues(alpha: 0.3),
-                            (isDebit ? Colors.green : Colors.red)
-                                .withValues(alpha: 0.2),
+                            balanceColor.withValues(alpha: 0.3),
+                            balanceColor.withValues(alpha: 0.2),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: (isDebit ? Colors.greenAccent : Colors.redAccent)
-                              .withValues(alpha: 0.5),
+                          color: balanceColorLight.withValues(alpha: 0.5),
                           width: 1.5,
                         ),
                       ),
                       child: Text(
-                        account.balanceType.toUpperCase(),
+                        isDebit ? 'DR' : 'CR',
                         style: TextStyle(
-                          color: isDebit ? Colors.greenAccent : Colors.redAccent,
+                          color: balanceColorLight,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1,
