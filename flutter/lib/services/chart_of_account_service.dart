@@ -21,6 +21,7 @@ class ChartOfAccountService {
         .map((snapshot) {
           final accounts = snapshot.docs
               .map((doc) => ChartOfAccount.fromFirestore(doc.data(), doc.id))
+              .where((account) => account.status != 'delete') // Filter out deleted accounts
               .toList();
           // Sort in memory instead of using Firestore orderBy
           accounts.sort((a, b) => a.accountHead.compareTo(b.accountHead));
@@ -103,7 +104,25 @@ class ChartOfAccountService {
     }
   }
 
-  // Delete account
+  // Soft delete account (mark as deleted, don't actually remove)
+  Future<void> softDeleteAccount(String id) async {
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Update status to 'delete' instead of actually deleting
+      await _firestore.collection('chartofaccount').doc(id).update({
+        'status': 'delete',
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to delete account: $e');
+    }
+  }
+
+  // Hard delete account (permanent removal - use with caution)
   Future<void> deleteAccount(String id) async {
     try {
       final user = await _authService.getCurrentUser();

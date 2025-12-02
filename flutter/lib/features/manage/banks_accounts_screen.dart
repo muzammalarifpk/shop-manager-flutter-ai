@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/chart_of_account.dart';
 import '../../services/chart_of_account_service.dart';
 import '../../widgets/custom_notifications.dart';
+import 'add_edit_account_screen.dart';
 
 class BanksAccountsScreen extends StatefulWidget {
   const BanksAccountsScreen({super.key});
@@ -475,18 +476,18 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                                 icon: Icons.receipt_long,
                               );
                             },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.receipt_long,
                                     color: Colors.white,
                                     size: 18,
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Text(
+                                  SizedBox(width: 8),
+                                  Text(
                                     'Ledger',
                                     style: TextStyle(
                                       color: Colors.white,
@@ -501,7 +502,7 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
@@ -521,18 +522,18 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
                             onTap: () => _showEditAccountDialog(context, account),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.edit_outlined,
                                     color: Colors.white,
                                     size: 18,
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Text(
+                                  SizedBox(width: 8),
+                                  Text(
                                     'Edit',
                                     style: TextStyle(
                                       color: Colors.white,
@@ -542,6 +543,36 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                                   ),
                                 ],
                               ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.red.withValues(alpha: 0.3),
+                            Colors.red.withValues(alpha: 0.2),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.red.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => _showDeleteConfirmation(context, account),
+                          child: const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Icon(
+                              Icons.delete_outline,
+                              color: Colors.redAccent,
+                              size: 20,
                             ),
                           ),
                         ),
@@ -579,7 +610,6 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
   }
 
   void _showAddAccountDialog(BuildContext context) {
-    // TODO: Implement add account dialog
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const AddEditAccountScreen(),
@@ -588,31 +618,144 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
   }
 
   void _showEditAccountDialog(BuildContext context, ChartOfAccount account) {
-    // TODO: Implement edit account dialog
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => AddEditAccountScreen(account: account),
       ),
     );
   }
-}
 
-// Placeholder for Add/Edit screen (will be implemented next)
-class AddEditAccountScreen extends StatelessWidget {
-  final ChartOfAccount? account;
-
-  const AddEditAccountScreen({super.key, this.account});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(account == null ? 'Add Account' : 'Edit Account'),
-      ),
-      body: const Center(
-        child: Text('Add/Edit form coming soon...'),
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    ChartOfAccount account,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF2D2D44),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: Colors.white.withValues(alpha: 0.2),
+            ),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.delete_outline,
+                  color: Colors.redAccent,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Delete Account?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to delete "${account.accountHead}"?',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.orange.shade300,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'This will be a soft delete. The account will be marked as deleted but data will be preserved.',
+                        style: TextStyle(
+                          color: Colors.orange.shade200,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
       ),
     );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await _accountService.softDeleteAccount(account.id);
+        if (context.mounted) {
+          GlassySuccessNotification.show(
+            context,
+            message: 'Account deleted successfully',
+            icon: Icons.check_circle,
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          GlassyErrorNotification.show(
+            context,
+            message: 'Failed to delete account: ${e.toString()}',
+          );
+        }
+      }
+    }
   }
 }
 
