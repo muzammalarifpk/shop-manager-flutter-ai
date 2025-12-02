@@ -229,54 +229,71 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
     final isDebit = account.balanceType.toLowerCase() == 'debit';
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha: 0.15),
-            Colors.white.withValues(alpha: 0.08),
+            Colors.white.withValues(alpha: 0.2),
+            Colors.white.withValues(alpha: 0.1),
           ],
         ),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           onTap: () => _showEditAccountDialog(context, account),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Account icon
+                    // Account icon with enhanced design
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                           colors: [
-                            isDebit ? Colors.green : Colors.red,
-                            isDebit
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
+                            isDebit ? Colors.green.shade400 : Colors.red.shade400,
+                            isDebit ? Colors.green.shade700 : Colors.red.shade700,
                           ],
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (isDebit ? Colors.green : Colors.red)
+                                .withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Icon(
                         _getAccountIcon(account.accountType),
                         color: Colors.white,
-                        size: 20,
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     // Account name and type
                     Expanded(
                       child: Column(
@@ -286,103 +303,247 @@ class _BanksAccountsScreenState extends State<BanksAccountsScreen> {
                             account.accountHead,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 0.3,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            account.accountType,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 12,
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Text(
+                              account.accountType,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    // Balance
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Divider
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.0),
+                        Colors.white.withValues(alpha: 0.3),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Balance section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                          'Balance',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
                         Text(
                           account.balance.toStringAsFixed(2),
                           style: TextStyle(
                             color: isDebit ? Colors.greenAccent : Colors.redAccent,
-                            fontSize: 18,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: (isDebit ? Colors.green : Colors.red)
-                                .withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            account.balanceType.toUpperCase(),
-                            style: TextStyle(
-                              color: isDebit ? Colors.greenAccent : Colors.redAccent,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                if (account.notes != null && account.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    account.notes!,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: 12,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                // Action buttons
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () {
-                        // TODO: Navigate to ledger view
-                        GlassySuccessNotification.show(
-                          context,
-                          message: 'Ledger view coming soon',
-                          icon: Icons.receipt_long,
-                        );
-                      },
-                      icon: const Icon(Icons.receipt_long, size: 16),
-                      label: const Text('Ledger'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            (isDebit ? Colors.green : Colors.red)
+                                .withValues(alpha: 0.3),
+                            (isDebit ? Colors.green : Colors.red)
+                                .withValues(alpha: 0.2),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: (isDebit ? Colors.greenAccent : Colors.redAccent)
+                              .withValues(alpha: 0.5),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        account.balanceType.toUpperCase(),
+                        style: TextStyle(
+                          color: isDebit ? Colors.greenAccent : Colors.redAccent,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    TextButton.icon(
-                      onPressed: () => _showEditAccountDialog(context, account),
-                      icon: const Icon(Icons.edit, size: 16),
-                      label: const Text('Edit'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                  ],
+                ),
+                if (account.notes != null && account.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.note_outlined,
+                          color: Colors.white.withValues(alpha: 0.6),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            account.notes!,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                // Action buttons
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withValues(alpha: 0.15),
+                              Colors.white.withValues(alpha: 0.1),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              // TODO: Navigate to ledger view
+                              GlassySuccessNotification.show(
+                                context,
+                                message: 'Ledger view coming soon',
+                                icon: Icons.receipt_long,
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.receipt_long,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Ledger',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withValues(alpha: 0.15),
+                              Colors.white.withValues(alpha: 0.1),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => _showEditAccountDialog(context, account),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.edit_outlined,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -454,4 +615,5 @@ class AddEditAccountScreen extends StatelessWidget {
     );
   }
 }
+
 
