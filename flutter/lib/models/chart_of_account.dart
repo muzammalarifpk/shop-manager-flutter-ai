@@ -7,6 +7,7 @@ class ChartOfAccount {
   final String status; // 'published' or 'draft'
   final String? notes;
   final String ownerMobile;
+  final String? accountKey; // System account identifier (e.g., 'cashonhand', 'expense')
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -19,9 +20,13 @@ class ChartOfAccount {
     required this.status,
     this.notes,
     required this.ownerMobile,
+    this.accountKey,
     required this.createdAt,
     required this.updatedAt,
   });
+
+  // Check if this is a system-created default account
+  bool get isSystemAccount => accountKey != null && accountKey!.isNotEmpty;
 
   factory ChartOfAccount.fromFirestore(Map<String, dynamic> data, String id) {
     return ChartOfAccount(
@@ -33,6 +38,7 @@ class ChartOfAccount {
       status: data['status'] ?? 'published',
       notes: data['notes'],
       ownerMobile: data['owner_mobile'] ?? '',
+      accountKey: data['account_key'],
       createdAt: data['created_at'] != null
           ? DateTime.parse(data['created_at'])
           : DateTime.now(),
@@ -51,6 +57,7 @@ class ChartOfAccount {
       'status': status,
       'notes': notes,
       'owner_mobile': ownerMobile,
+      'account_key': accountKey,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -65,6 +72,7 @@ class ChartOfAccount {
     String? status,
     String? notes,
     String? ownerMobile,
+    String? accountKey,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -77,6 +85,7 @@ class ChartOfAccount {
       status: status ?? this.status,
       notes: notes ?? this.notes,
       ownerMobile: ownerMobile ?? this.ownerMobile,
+      accountKey: accountKey ?? this.accountKey,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
